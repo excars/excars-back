@@ -1,0 +1,18 @@
+language: python
+python:
+  - "3.6"
+
+sudo: required
+dist: trusty
+
+services:
+  - docker
+
+before_script:
+  - docker-compose build
+
+script:
+  - docker-compose run app make ci; [ "$?" -eq 0 ] || exit $?
+
+after_script:
+  - docker-compose down
