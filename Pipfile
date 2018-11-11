@@ -7,6 +7,9 @@ name = "pypi"
 peewee = "*"
 sanic = "*"
 "psycopg2-binary" = "*"
+social-auth-core = "*"
+social-auth-app-flask-peewee = "*"
+sanic-jwt = "*"
 
 [dev-packages]
 isort = "*"
