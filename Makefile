@@ -1,3 +1,7 @@
+nopyc:
+	@find . -name "*.pyc" -exec rm -f {} \;
+
+
 isort:
 	@isort --check-only -q
 
