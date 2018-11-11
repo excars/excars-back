@@ -9,7 +9,7 @@ RUN pip3 install --upgrade pip cython && \
 COPY Pipfile /
 COPY Pipfile.lock /
 
-RUN pipenv install --system
+RUN pipenv install --system --dev
 
 WORKDIR ${HOME}
 COPY . ${HOME}
