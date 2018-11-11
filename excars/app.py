@@ -1,5 +1,6 @@
 import sanic
 import sanic_jwt
+import sanic_cors
 from playhouse.db_url import connect
 from social_flask_peewee.models import init_social
 
@@ -9,7 +10,9 @@ from excars.db import create_tables
 
 app = sanic.Sanic()
 app.config.from_object(excars.settings)
+
 sanic_jwt.Initialize(app, authenticate=authenticate)
+sanic_cors.CORS(app, automatic_options=True)
 
 db = connect(app.config.DB_URL)
 init_social(app, db)
