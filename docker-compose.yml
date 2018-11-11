@@ -11,6 +11,8 @@ services:
       - 8000:8000
     volumes:
       - .:/excars-back
+    env_file:
+    - ./.env
     depends_on:
       - db
     command: web

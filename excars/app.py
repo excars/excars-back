@@ -1,6 +1,6 @@
 import sanic
-import sanic_jwt
 import sanic_cors
+import sanic_jwt
 from playhouse.db_url import connect
 from social_flask_peewee.models import init_social
 
