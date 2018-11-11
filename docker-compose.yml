@@ -1,0 +1,26 @@
+version: '3'
+
+
+services:
+
+  app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/excars
+    depends_on:
+      - db
+    command: web
+
+  db:
+    restart: always
+    image: postgres:alpine
+    environment:
+      POSTGRES_DB: excars
+      POSTGRES_USER: excars
+      POSTGRES_PASSWORD: excars
+    expose:
+      - "5432"
