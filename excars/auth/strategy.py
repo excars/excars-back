@@ -1,3 +1,5 @@
+import urllib.parse
+
 from sanic import response
 from social_core import strategy
 
@@ -23,10 +25,10 @@ class SanicStrategy(strategy.BaseStrategy):
         return self.request.args.copy()
 
     def request_host(self):
-        return self.request.host
+        return self.request.host.partition(':')[0]
 
     def request_port(self):
-        return self.request.port
+        return self.request.host.partition(':')[2]
 
     def request_path(self):
         return self.request.path
@@ -35,7 +37,10 @@ class SanicStrategy(strategy.BaseStrategy):
         return self.request.scheme == 'https'
 
     def build_absolute_uri(self, path=None):
-        return 'http://localhost:3000'
+        url = f'{self.request.scheme}://{self.request.host}'
+        if path:
+            return urllib.parse.urljoin(url, path)
+        return f'{url}{self.request.path}'
 
     def redirect(self, url):
         return response.redirect(url)
@@ -43,11 +48,11 @@ class SanicStrategy(strategy.BaseStrategy):
     def html(self, content):
         return response.html(content)
 
-    def session_pop(self, name):
+    def session_get(self, name, default=None):
         pass
 
     def session_set(self, name, value):
         pass
 
-    def session_get(self, name, default=None):
+    def session_pop(self, name):
         pass

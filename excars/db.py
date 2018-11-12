@@ -2,8 +2,8 @@ from social_core.utils import module_member
 from social_flask_peewee import models as social_models
 
 
-def create_tables(app, db):
-    tables = [
+def get_models(app):
+    models = [
         social_models.FlaskStorage.user,
         social_models.FlaskStorage.nonce,
         social_models.FlaskStorage.association,
@@ -11,7 +11,13 @@ def create_tables(app, db):
         social_models.FlaskStorage.partial,
     ]
 
-    tables.extend(list(map(module_member, app.config.APP_MODELS)))
+    models += list(map(module_member, app.config.APP_MODELS))
+
+    return models
+
+
+def create_tables(app, db):
+    models = get_models(app)
 
     with db:
-        db.create_tables(tables, safe=True)
+        db.create_tables(models, safe=True)
