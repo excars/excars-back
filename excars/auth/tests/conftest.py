@@ -1,4 +1,7 @@
+# pylint: disable=redefined-outer-name
+
 import pytest
+
 from excars import app
 from excars.db import get_models
 
@@ -35,3 +38,4 @@ def _require_db_marker(request):
     marker = request.node.get_closest_marker('require_db')
     if marker:
         return request.getfixturevalue('transaction')
+    return None
