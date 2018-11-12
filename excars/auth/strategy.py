@@ -2,9 +2,10 @@ from sanic import response
 from social_core import strategy
 
 
+# pylint: disable=too-many-public-methods
 class SanicStrategy(strategy.BaseStrategy):
 
-    def __init__(self, storage=None, request=None, tpl=None):
+    def __init__(self, storage, request, tpl=None):
         self.request = request
         super().__init__(storage, tpl)
 
@@ -12,15 +13,26 @@ class SanicStrategy(strategy.BaseStrategy):
         return getattr(self.request.app.config, name)
 
     def request_data(self, merge=True):
-        if self.request:
-            data = self.request.get('auth_data', {})
-            return data
-        else:
-            return {}
+        data = self.request.get('auth_data', {})
+        return data
+
+    def request_post(self):
+        return self.request.form.copy()
+
+    def request_get(self):
+        return self.request.args.copy()
 
     def request_host(self):
-        if self.request:
-            return self.request.host
+        return self.request.host
+
+    def request_port(self):
+        return self.request.port
+
+    def request_path(self):
+        return self.request.path
+
+    def request_is_secure(self):
+        return self.request.scheme == 'https'
 
     def build_absolute_uri(self, path=None):
         return 'http://localhost:3000'
@@ -30,3 +42,12 @@ class SanicStrategy(strategy.BaseStrategy):
 
     def html(self, content):
         return response.html(content)
+
+    def session_pop(self, name):
+        pass
+
+    def session_set(self, name, value):
+        pass
+
+    def session_get(self, name, default=None):
+        pass

@@ -7,13 +7,14 @@ from .strategy import SanicStrategy
 
 
 def load_strategy(request=None):
-    return SanicStrategy(request=request, storage=FlaskStorage)
+    return SanicStrategy(FlaskStorage, request=request)
 
 
 def load_backend(strategy, redirect_uri=''):
     return GoogleOAuth2(strategy, redirect_uri)
 
 
+# pylint: disable=unused-argument
 async def authenticate(request, *args, **kwargs):
     request['auth_data'] = request.json
     strategy = load_strategy(request)

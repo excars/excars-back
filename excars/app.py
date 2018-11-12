@@ -16,4 +16,4 @@ sanic_cors.CORS(app, automatic_options=True)
 
 db = connect(app.config.DB_URL)
 init_social(app, db)
-create_tables(db)
+create_tables(app, db)
