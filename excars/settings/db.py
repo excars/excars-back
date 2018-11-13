@@ -1,6 +1,6 @@
 import os
 
-DB_URL = os.getenv(
-    'DB_URL',
+DB_DSN = os.getenv(
+    'DB_DSN',
     'postgresext://excars:excars@db:5432/excars'
 )
