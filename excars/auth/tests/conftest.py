@@ -7,7 +7,7 @@ from playhouse import db_url
 from social_flask_peewee.models import init_social
 
 from excars import app
-from excars.db import get_models
+from excars.db import database, get_models
 
 
 @pytest.fixture(scope='session')
@@ -17,7 +17,7 @@ def db():
     connection_params = db_url.parse(app.app.config.DB_DSN)
     connection_params['database'] = _get_test_database_name()
 
-    test_db = app.db.__class__(**connection_params)
+    test_db = database.__class__(**connection_params)
     init_social(app.app, test_db)
 
     models = get_models(app.app)

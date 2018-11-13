@@ -1,6 +1,6 @@
 import peewee
 
-from excars.app import db
+from excars.db import database
 
 
 class User(peewee.Model):
@@ -8,5 +8,5 @@ class User(peewee.Model):
     email = peewee.CharField(index=True)
 
     class Meta:
-        database = db
+        database = database
         table_name = 'users'
