@@ -3,7 +3,8 @@
 from unittest import mock
 
 import pytest
-from sanic_jwt import exceptions
+import sanic_jwt.exceptions
+import social_core.exceptions
 
 from excars.auth import models, views
 
@@ -24,6 +25,11 @@ def request_mock(loop):
     request.app.config.SOCIAL_AUTH_ALLOWED_EMAIL_DOMAINS = ['excars.com']
 
     return request
+
+
+@pytest.fixture
+def user():
+    return models.User.create(id=1, username='user', email='user@excars.com')
 
 
 async def test_authenticate_success(request_mock):
@@ -64,13 +70,23 @@ async def test_authenticate_failure_due_to_email_domain_restriction(request_mock
     load_backend = mock.patch('excars.auth.strategies.load_backend', return_value=backend)
 
     with load_strategy, load_backend:
-        with pytest.raises(exceptions.AuthenticationFailed):
+        with pytest.raises(sanic_jwt.exceptions.AuthenticationFailed):
             await views.authenticate(request_mock)
 
 
-@pytest.fixture
-def user():
-    return models.User.create(id=1, username='user', email='user@excars.com')
+async def test_authenticate_failure_due_to_oauth(request_mock):
+    strategy = mock.MagicMock()
+    backend = mock.MagicMock()
+    backend.complete = mock.MagicMock(
+        side_effect=social_core.exceptions.AuthCanceled(backend)
+    )
+
+    load_strategy = mock.patch('excars.auth.strategies.load_strategy', return_value=strategy)
+    load_backend = mock.patch('excars.auth.strategies.load_backend', return_value=backend)
+
+    with load_strategy, load_backend:
+        with pytest.raises(sanic_jwt.exceptions.AuthenticationFailed):
+            await views.authenticate(request_mock)
 
 
 @pytest.mark.require_db

@@ -1,6 +1,8 @@
 import concurrent.futures
 
-from sanic_jwt import exceptions
+import requests.exceptions
+import sanic_jwt.exceptions
+import social_core.exceptions
 
 from . import models, strategies
 
@@ -17,11 +19,14 @@ async def authenticate(request, *args, **kwargs):
 
     app = request.app
     with concurrent.futures.ThreadPoolExecutor() as pool:
-        user = await app.loop.run_in_executor(pool, backend.complete)
+        try:
+            user = await app.loop.run_in_executor(pool, backend.complete)
+        except (social_core.exceptions.AuthCanceled, requests.exceptions.HTTPError):
+            raise sanic_jwt.exceptions.AuthenticationFailed()
 
     email_domain = user.email.partition('@')[2]
     if email_domain not in app.config.SOCIAL_AUTH_ALLOWED_EMAIL_DOMAINS:
-        raise exceptions.AuthenticationFailed()
+        raise sanic_jwt.exceptions.AuthenticationFailed()
 
     return {
         'user_id': user.id
