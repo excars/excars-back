@@ -36,7 +36,9 @@ async def process_location(data, user_uid, redis):
 
 async def subscribe_map(request, ws):
     while True:
-        await ws.send(ujson.dumps(await _get_users_data(request['user'], request.app.redis)))
+        await asyncio.sleep(0.1)
+        data = await _get_users_data(request['user'], request.app.redis)
+        await ws.send(ujson.dumps(data or {}))
         await asyncio.sleep(PUB_LOCATION_FREQUENCY)
 
 
@@ -45,12 +47,14 @@ async def _get_users_data(user, redis):
         *[redis.hgetall(k) async for k in get_all_keys(USER_PREFIX, redis)],
         return_exceptions=True
     )
+    if not users_info or user.encode() not in [_data[b'uid'] for _data in users_info]:
+        return
     distances = await _get_users_distances(users_info, user, redis)
     return {
-        info['uid']: {
-            'distance': distances[info['uid']],
+        info[b'uid']: {
+            'distance': distances[info[b'uid']],
             **info,
-        } for info in users_info
+        } for info in users_info if info[b'uid'] != user.encode()
     }
 
 
@@ -63,7 +67,6 @@ async def _get_users_distances(users_info, user, redis):
 
 async def create_map(users_data, user, redis):
     key = f'map:user:{user}'
-    print(users_data)
     await asyncio.gather(
         *[redis.geoadd(key, data[b'longitude'], data[b'latitude'], data[b'uid']) for data in users_data],
         return_exceptions=True
