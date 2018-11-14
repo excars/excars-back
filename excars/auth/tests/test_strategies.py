@@ -3,8 +3,9 @@
 from unittest import mock
 
 import pytest
+from social_core.backends.google import GoogleOAuth2
 
-from excars.auth.strategy import SanicStrategy
+from excars.auth import strategies
 
 
 @pytest.fixture
@@ -33,7 +34,15 @@ def storage_mock():
 
 @pytest.fixture
 def strategy(storage_mock, request_mock):
-    return SanicStrategy(storage_mock, request=request_mock)
+    return strategies.SanicStrategy(storage_mock, request=request_mock)
+
+
+def test_load_strategy(request_mock):
+    assert isinstance(strategies.load_strategy(request_mock), strategies.SanicStrategy)
+
+
+def test_load_backend(strategy):
+    assert isinstance(strategies.load_backend(strategy), GoogleOAuth2)
 
 
 def test_get_settings(strategy):
