@@ -9,11 +9,12 @@ services:
   - docker
 
 before_install:
+  - touch secrets.env
   - docker-compose build
 
 install:
   - pip install codecov
-  - pip install coverage
+  - pip install coverage==5.0a3
 
 script:
   - docker-compose run app make ci

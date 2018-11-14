@@ -1,12 +1,13 @@
 import sanic
-from playhouse.db_url import connect
+import sanic_cors
 
 import excars.settings
-from excars.db import create_tables
+from excars import auth, db
 
 app = sanic.Sanic()
 app.config.from_object(excars.settings)
 
+sanic_cors.CORS(app, automatic_options=True)
 
-db = connect(app.config.DB_URL)
-create_tables(db)
+app.register_listener(db.init, 'before_server_start')
+app.register_listener(auth.init, 'before_server_start')
