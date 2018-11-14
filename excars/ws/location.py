@@ -1,8 +1,9 @@
-import datetime
 import asyncio
+import datetime
+
+from sanic import Blueprint
 
 import ujson
-from sanic import Blueprint
 
 bp = Blueprint('ws_location')
 USER_INFO_TTL = 60 * 30
