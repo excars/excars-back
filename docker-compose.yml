@@ -12,7 +12,7 @@ services:
     volumes:
       - .:/excars-back
     env_file:
-    - ./.env
+    - ./secrets.env
     depends_on:
       - db
     command: web

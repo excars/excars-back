@@ -14,8 +14,7 @@ def load_backend(strategy, redirect_uri=''):
     return GoogleOAuth2(strategy, redirect_uri)
 
 
-# pylint: disable=too-many-public-methods
-class SanicStrategy(BaseStrategy):
+class SanicStrategy(BaseStrategy):  # pylint: disable=too-many-public-methods
 
     def __init__(self, storage, request, tpl=None):
         self.request = request

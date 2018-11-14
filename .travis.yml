@@ -9,7 +9,7 @@ services:
   - docker
 
 before_install:
-  - touch .env
+  - touch secrets.env
   - docker-compose build
 
 install:

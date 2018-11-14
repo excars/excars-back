@@ -13,6 +13,7 @@ async def authenticate(request, *args, **kwargs):
     backend = strategies.load_backend(strategy)
     backend.REDIRECT_STATE = False
     backend.STATE_PARAMETER = False
+    backend.redirect_uri = request.json.get('redirect_uri')
 
     app = request.app
     with concurrent.futures.ThreadPoolExecutor() as pool:

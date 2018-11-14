@@ -12,7 +12,8 @@ from excars.auth import models, views
 def request_mock(loop):
     request = mock.MagicMock()
     request.json = {
-        'code': '1234'
+        'code': '1234',
+        'redirect_uri': 'http://localhost:3000'
     }
     request.app.loop = loop
 
@@ -48,6 +49,7 @@ async def test_authenticate_success(request_mock):
 
     assert backend.REDIRECT_STATE is False
     assert backend.STATE_PARAMETER is False
+    assert backend.redirect_uri == 'http://localhost:3000'
     assert backend.complete.called
 
 
