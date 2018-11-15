@@ -11,13 +11,13 @@ def test_cli(loop, test_client):
 
 @pytest.fixture(scope='function', autouse=True)
 async def setup(loop, test_cli):
-    test_cli.app.redis.flushdb()
+    await test_cli.app.redis.flushdb()
     yield
-    test_cli.app.redis.flushdb()
+    await test_cli.app.redis.flushdb()
 
 
 async def test_publish_location(test_cli):
-    conn = await test_cli.ws_connect('/location')
-    await conn.send_json({'longitude': 1, 'latitude': 1})
+    conn = await test_cli.ws_connect('/stream')
+    await conn.send_json({'data': {'longitude': 1, 'latitude': 1}, 'type': 'LOCATION'})
     locations = await conn.receive_json()
-    assert locations == {}
+    assert locations == {'data': {}, 'type': 'MAP'}
