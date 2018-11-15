@@ -1,10 +1,7 @@
-FROM python:3.7.1
+FROM excars/excars-base:latest
 
 ENV APP_HOME="/excars-back"
-
-
-RUN pip3 install --upgrade pip cython && \
-    pip3 install pipenv
+ENV PYTHONPATH="${APP_HOME}"
 
 COPY Pipfile /
 COPY Pipfile.lock /
