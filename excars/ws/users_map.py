@@ -22,7 +22,7 @@ async def handler(request, ws):
 
 async def get_users_data(user, redis):
     users_info = await asyncio.gather(
-        *[redis.hgetall(k) async for k in get_all_keys(USER_PREFIX, redis)],
+        *[redis.hgetall(k) async for k in get_all_keys(USER_PREFIX, redis)],  # pylint: disable=not-an-iterable
         return_exceptions=True
     )
     if not users_info or user.encode() not in [_data[b'uid'] for _data in users_info]:
