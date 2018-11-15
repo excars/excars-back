@@ -8,11 +8,22 @@ dist: trusty
 services:
   - docker
 
-before_script:
+before_install:
+  - touch secrets.env
   - docker-compose build
 
+install:
+  - pip install codecov
+  - pip install coverage
+
 script:
-  - docker-compose run app make ci; [ "$?" -eq 0 ] || exit $?
+  - docker-compose run app make ci
 
 after_script:
   - docker-compose down
+
+
+after_success:
+  - mv .coverage .coverage.travis
+  - coverage combine --append
+  - codecov

@@ -319,7 +319,7 @@ indent-after-paren=4
 indent-string='    '
 
 # Maximum number of characters on a single line.
-max-line-length=100
+max-line-length=119
 
 # Maximum number of lines in a module.
 max-module-lines=1000
@@ -420,6 +420,7 @@ good-names=i,
            _,
            db,
            app,
+           database,
 
 # Include a hint for the correct naming format with invalid-name.
 include-naming-hint=no
@@ -530,28 +531,28 @@ max-args=5
 max-attributes=7
 
 # Maximum number of boolean expressions in an if statement.
-max-bool-expr=5
+max-bool-expr=3
 
 # Maximum number of branch for function / method body.
-max-branches=12
+max-branches=5
 
 # Maximum number of locals for function / method body.
-max-locals=15
+max-locals=10
 
 # Maximum number of parents for a class (see R0901).
 max-parents=7
 
 # Maximum number of public methods for a class (see R0904).
-max-public-methods=20
+max-public-methods=10
 
 # Maximum number of return / yield for function / method body.
-max-returns=6
+max-returns=4
 
 # Maximum number of statements in function / method body.
-max-statements=50
+max-statements=20
 
 # Minimum number of public methods for a class (see R0903).
-min-public-methods=2
+min-public-methods=0
 
 
 [EXCEPTIONS]

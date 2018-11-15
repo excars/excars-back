@@ -1,10 +1,10 @@
 import aioredis
 import sanic
-from playhouse.db_url import connect
+import sanic_cors
 
-from excars import settings
-from excars.db import create_tables
+from excars import auth, db, settings
 from excars.ws import location
+
 
 app = sanic.Sanic()
 app.config.from_object(settings)
@@ -31,6 +31,10 @@ async def stop_redis(app, loop):
     app.redis.close()
 
 
+sanic_cors.CORS(app, automatic_options=True)
+
+app.register_listener(db.init, 'before_server_start')
+app.register_listener(auth.init, 'before_server_start')
+
+
 app.blueprint(location.bp)
-db = connect(app.config.DB_URL)
-# create_tables(db)

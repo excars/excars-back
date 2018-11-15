@@ -8,6 +8,11 @@ peewee = "*"
 sanic = "*"
 "psycopg2-binary" = "*"
 aioredis = "*"
+social-auth-core = "*"
+sanic-jwt = "*"
+sanic-cors = "*"
+social-auth-app-flask-peewee = "*"
+social-storage-peewee = {git = "https://github.com/unmade/social-storage-peewee.git"}
 
 [dev-packages]
 isort = "*"

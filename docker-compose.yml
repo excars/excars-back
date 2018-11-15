@@ -10,7 +10,9 @@ services:
     ports:
       - ${EXTERNAL_PORT}:8000
     volumes:
-      - .:/excars 
+      - .:/excars-back
+    env_file:
+    - ./secrets.env
     depends_on:
       - db
       - redis

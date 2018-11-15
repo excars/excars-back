@@ -1,3 +1,7 @@
+nopyc:
+	@find . -name "*.pyc" -exec rm -f {} \;
+
+
 isort:
 	@isort --check-only -q
 
@@ -11,7 +15,7 @@ pylint:
 
 
 test:
-	@pytest excars/*
+	@pytest
 
 
 lint: isort flake8 pylint
