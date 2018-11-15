@@ -264,10 +264,10 @@
         },
         "sanic-plugins-framework": {
             "hashes": [
-                "sha256:115b6678b281e93452c83eacda31d64997a09859d190d305568a9fd547c36fe8",
-                "sha256:d31e97b27726af7931be6e5b0e7c72d0352ad134b5f3a6f94ff8f6794cecc4c9"
+                "sha256:0f0b7ce3689330decd9d9b26f2ad739f0dd42cfe978a2df613a555a32441ca7d",
+                "sha256:281578ec93eac798368abba17d3e88b5046e0bfe8fb02d4c1adf89979f9d143b"
             ],
-            "version": "==0.6.4.dev20181101"
+            "version": "==0.6.5"
         },
         "six": {
             "hashes": [
