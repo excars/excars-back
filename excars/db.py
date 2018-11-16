@@ -11,7 +11,7 @@ async def init(app, loop):
     del loop
     _init_db(app, database)
     social_models.init_social(app, database)
-    create_tables(app, database)
+    # create_tables(app, database)
 
 
 def _init_db(app, db):

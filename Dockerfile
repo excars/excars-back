@@ -6,7 +6,7 @@ ENV PYTHONPATH="${APP_HOME}"
 COPY Pipfile /
 COPY Pipfile.lock /
 
-RUN pipenv install --system --dev
+RUN pipenv install --system --ignore-pipfile --deploy --dev
 
 WORKDIR ${APP_HOME}
 COPY . ${APP_HOME}

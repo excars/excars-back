@@ -8,13 +8,14 @@ services:
       context: .
       dockerfile: ./Dockerfile
     ports:
-      - 8000:8000
+      - ${EXTERNAL_PORT}:8000
     volumes:
       - .:/excars-back
     env_file:
     - ./secrets.env
     depends_on:
       - db
+      - redis
     command: web
 
   db:
@@ -26,3 +27,7 @@ services:
       POSTGRES_PASSWORD: excars
     expose:
       - "5432"
+
+  redis:
+    restart: always
+    image: redis:5-alpine
