@@ -2,20 +2,22 @@ import asyncio
 
 import ujson
 
-from .utils import USER_PREFIX
+from .. import event
+from ..utils import USER_PREFIX
 
 PUB_LOCATION_FREQUENCY = 5
 EVENT = 'MAP'
 
 
+@event.publisher
 async def handler(request, ws):
     while True:
         data = await get_users_data(request['user'], request.app.redis)
         if data is None:
             await asyncio.sleep(1)
             continue
-        event = {'type': EVENT, 'data': data}
-        await ws.send(ujson.dumps(event))
+        message = {'type': EVENT, 'data': data}
+        await ws.send(ujson.dumps(message))
         await asyncio.sleep(PUB_LOCATION_FREQUENCY)
 
 
