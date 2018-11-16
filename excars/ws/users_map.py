@@ -2,14 +2,13 @@ import asyncio
 
 import ujson
 
-from .utils import USER_PREFIX, get_all_keys
+from .utils import USER_PREFIX
 
 PUB_LOCATION_FREQUENCY = 5
 EVENT = 'MAP'
 
 
 async def handler(request, ws):
-    await asyncio.sleep(0.1)
     while True:
         data = await get_users_data(request['user'], request.app.redis)
         if data is None:
@@ -22,7 +21,7 @@ async def handler(request, ws):
 
 async def get_users_data(user, redis):
     users_info = await asyncio.gather(
-        *[redis.hgetall(k) async for k in get_all_keys(USER_PREFIX, redis)],  # pylint: disable=not-an-iterable
+        *[redis.hgetall(k) async for k in redis.iscan(match=f'{USER_PREFIX}*')],
         return_exceptions=True
     )
     if not users_info or user.encode() not in [_data[b'uid'] for _data in users_info]:
