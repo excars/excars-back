@@ -1,10 +1,12 @@
 import datetime
 
-from .utils import get_user_info_redis_key
+from .. import event
+from ..utils import get_user_info_redis_key
 
 USER_INFO_TTL = 60 * 30
 
 
+@event.listen('LOCATION')
 async def handler(request, data):
     await process_location(data, request['user'], request.app.redis)
 

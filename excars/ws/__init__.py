@@ -4,29 +4,28 @@ from sanic import Blueprint
 
 import ujson
 
-from .publish_location import handler as publish_location
-from .users_map import handler as users_map
-
+from . import event
 
 bp = Blueprint('ws_location')
 
-LOCATION_EVENT = 'LOCATION'
-EVENTS = {
-    LOCATION_EVENT: publish_location
-}
+event.discover()
 
 
 @bp.websocket('/stream')
 async def channel(request, ws):
-    await asyncio.gather(listeners(request, ws), users_map(request, ws))
+    await asyncio.gather(listeners(request, ws), *publishers(request, ws))
 
 
 async def listeners(request, ws):
     while True:
         try:
-            event = ujson.loads(await ws.recv())
+            message = ujson.loads(await ws.recv())
         except ValueError:
             continue
-        handler = EVENTS.get(event['type'])
+        handler = event.get_listener(message['type'])
         if handler:
-            await handler(request, event['data'])
+            await handler(request, message['data'])
+
+
+def publishers(request, ws):
+    return [publisher(request, ws) for publisher in event.get_publishers()]
