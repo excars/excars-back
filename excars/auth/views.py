@@ -28,9 +28,7 @@ async def authenticate(request, *args, **kwargs):
     if email_domain not in app.config.SOCIAL_AUTH_ALLOWED_EMAIL_DOMAINS:
         raise sanic_jwt.exceptions.AuthenticationFailed()
 
-    return {
-        'user_id': user.id
-    }
+    return user
 
 
 async def retrieve_user(request, payload, *args, **kwargs):
@@ -42,10 +40,6 @@ async def retrieve_user(request, payload, *args, **kwargs):
         except models.User.DoesNotExist:
             return None
 
-        return {
-            'id': user.id,
-            'username': user.username,
-            'email': user.email,
-        }
+        return user
 
     return None

@@ -10,9 +10,9 @@ EVENT = 'MAP'
 
 
 @event.publisher
-async def handler(request, ws):
+async def handler(request, ws, user):
     while True:
-        data = await get_users_data(request['user'], request.app.redis)
+        data = await get_users_data(str(user.uid), request.app.redis)
         if data is None:
             await asyncio.sleep(1)
             continue

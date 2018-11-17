@@ -9,5 +9,6 @@ def init(app):
     Initialize(
         app,
         authenticate=views.authenticate,
-        retrieve_user=views.retrieve_user
+        retrieve_user=views.retrieve_user,
+        query_string_set=True,
     )
