@@ -1,5 +1,6 @@
 import asyncio
 
+import sanic_jwt
 from sanic import Blueprint
 
 import ujson
@@ -12,11 +13,13 @@ event.discover()
 
 
 @bp.websocket('/stream')
-async def channel(request, ws):
-    await asyncio.gather(listeners(request, ws), *publishers(request, ws))
+@sanic_jwt.inject_user()
+@sanic_jwt.protected()
+async def channel(request, ws, user):
+    await asyncio.gather(listeners(request, ws, user), *publishers(request, ws, user))
 
 
-async def listeners(request, ws):
+async def listeners(request, ws, user):
     while True:
         try:
             message = ujson.loads(await ws.recv())
@@ -24,8 +27,8 @@ async def listeners(request, ws):
             continue
         handler = event.get_listener(message['type'])
         if handler:
-            await handler(request, message['data'])
+            await handler(request, message['data'], user)
 
 
-def publishers(request, ws):
-    return [publisher(request, ws) for publisher in event.get_publishers()]
+def publishers(request, ws, user):
+    return [publisher(request, ws, user) for publisher in event.get_publishers()]

@@ -13,5 +13,6 @@ def test_init():
     assert jwt_init.call_args == mock.call(
         app,
         authenticate=views.authenticate,
-        retrieve_user=views.retrieve_user
+        retrieve_user=views.retrieve_user,
+        query_string_set=True,
     )

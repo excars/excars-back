@@ -27,17 +27,11 @@ def request_mock(loop):
     return request
 
 
-@pytest.fixture
-def user():
-    return models.User.create(id=1, username='user', email='user@excars.com')
-
-
 async def test_authenticate_success(request_mock):
+    user = models.User(id=1, username='user', email='user@excars.com')
     strategy = mock.MagicMock()
     backend = mock.MagicMock()
-    backend.complete = mock.MagicMock(
-        return_value=models.User(id=1, username='user', email='user@excars.com')
-    )
+    backend.complete = mock.MagicMock(return_value=user)
 
     load_strategy = mock.patch('excars.auth.strategies.load_strategy', return_value=strategy)
     load_backend = mock.patch('excars.auth.strategies.load_backend', return_value=backend)
@@ -45,7 +39,7 @@ async def test_authenticate_success(request_mock):
     with load_strategy as load_strategy_mock, load_backend as load_backend_mock:
         response = await views.authenticate(request_mock)
 
-    assert response == {'user_id': 1}
+    assert response == user
 
     assert load_strategy_mock.call_count == 1
     assert load_strategy_mock.call_args == mock.call(request_mock)
@@ -95,11 +89,7 @@ async def test_retrieve_user_returns_user(request_mock, user):
 
     response = await views.retrieve_user(request_mock, payload)
 
-    assert response == {
-        'id': user.id,
-        'username': user.username,
-        'email': user.email,
-    }
+    assert response == user
 
 
 @pytest.mark.require_db
