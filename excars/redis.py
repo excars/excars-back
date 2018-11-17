@@ -12,3 +12,4 @@ async def setup_redis(app, _):
 
 async def stop_redis(app, _):
     app.redis.close()
+    await app.redis.wait_closed()

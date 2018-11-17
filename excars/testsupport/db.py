@@ -14,13 +14,13 @@ from excars.db import database, get_models
 def db():
     _create_test_database()
 
-    connection_params = db_url.parse(app.app.config.DB_DSN)
+    connection_params = db_url.parse(app.application.config.DB_DSN)
     connection_params['database'] = _get_test_database_name()
 
     test_db = database.__class__(**connection_params)
-    init_social(app.app, test_db)
+    init_social(app.application, test_db)
 
-    models = get_models(app.app)
+    models = get_models(app.application)
     test_db.bind(models, bind_refs=False, bind_backrefs=False)
 
     with test_db:
@@ -58,7 +58,7 @@ def _drop_test_database():
 
 
 def _execute_sql(query, values=None):
-    conn_params = db_url.parse(app.app.config.DB_DSN)
+    conn_params = db_url.parse(app.application.config.DB_DSN)
 
     conn = psycopg2.connect(
         user=conn_params['user'],
@@ -78,5 +78,5 @@ def _execute_sql(query, values=None):
 
 
 def _get_test_database_name():
-    connection_params = db_url.parse(app.app.config.DB_DSN)
+    connection_params = db_url.parse(app.application.config.DB_DSN)
     return f'{connection_params["database"]}_test'

@@ -7,7 +7,7 @@ def test_init():
     app = mock.MagicMock()
 
     with mock.patch('excars.auth.Initialize') as jwt_init:
-        init(app, mock.MagicMock())
+        init(app)
 
     assert jwt_init.called
     assert jwt_init.call_args == mock.call(

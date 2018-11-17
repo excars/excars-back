@@ -1,3 +1,5 @@
 pytest_plugins = [  # pylint: disable=invalid-name
+    'excars.testsupport.app',
     'excars.testsupport.db',
+    'excars.testsupport.redis',
 ]

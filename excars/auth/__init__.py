@@ -5,8 +5,7 @@ from . import views
 __all__ = ['init']
 
 
-def init(app, loop):
-    del loop
+def init(app):
     Initialize(
         app,
         authenticate=views.authenticate,

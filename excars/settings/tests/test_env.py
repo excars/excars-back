@@ -11,6 +11,7 @@ from excars.settings._env import get_bool, get_list
     ('1', True),
     ('0', False),
     ('False', False),
+    (None, False),
 ])
 def test_get_bool(given, expected):
     with mock.patch('os.getenv', return_value=given):
