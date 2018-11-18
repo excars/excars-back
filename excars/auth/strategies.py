@@ -1,7 +1,7 @@
 import urllib.parse
 
 from sanic import response
-from social_core.backends.google import GoogleOAuth2
+from social_core.backends import google
 from social_core.strategy import BaseStrategy
 from social_flask_peewee.models import FlaskStorage
 
@@ -11,7 +11,9 @@ def load_strategy(request):
 
 
 def load_backend(strategy, redirect_uri=''):
-    return GoogleOAuth2(strategy, redirect_uri)
+    if 'id_token' in strategy.request_data():
+        return google.GooglePlusAuth(strategy, redirect_uri)
+    return google.GoogleOAuth2(strategy, redirect_uri)
 
 
 class SanicStrategy(BaseStrategy):  # pylint: disable=too-many-public-methods
