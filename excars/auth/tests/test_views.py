@@ -84,8 +84,9 @@ async def test_authenticate_failure_due_to_oauth(request_mock):
 
 
 @pytest.mark.require_db
-async def test_retrieve_user_returns_user(request_mock, user):
-    payload = {'user_id': 1}
+async def test_retrieve_user_returns_user(request_mock, create_user):
+    user = create_user()
+    payload = {'user_id': user.id}
 
     response = await views.retrieve_user(request_mock, payload)
 
