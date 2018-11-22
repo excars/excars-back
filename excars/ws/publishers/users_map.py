@@ -5,7 +5,7 @@ import ujson
 from .. import event
 from ..utils import USER_PREFIX
 
-PUB_LOCATION_FREQUENCY = 5
+PUB_LOCATION_FREQUENCY = 1
 EVENT = 'MAP'
 
 
@@ -32,12 +32,12 @@ async def get_users_data(user, redis):
         distances = {}
     else:
         distances = await get_users_distances(users_info, user, redis)
-    return {
-        info[b'uid']: {
+    return [
+        {
             'distance': distances.get(info[b'uid']),
             **info,
         } for info in users_info if info[b'uid'] != user.encode()
-    }
+    ]
 
 
 async def get_users_distances(users_info, user, redis):

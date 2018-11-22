@@ -13,7 +13,7 @@ async def test_publish_location(test_cli, add_jwt, mocker):
     conn = await test_cli.ws_connect(url)
     await conn.send_json({'data': {'longitude': 1, 'latitude': 1}, 'type': 'LOCATION'})
     locations = await conn.receive_json()
-    assert locations == {'data': {}, 'type': 'MAP'}
+    assert locations == {'data': [], 'type': 'MAP'}
 
 
 @pytest.mark.require_db
@@ -41,10 +41,11 @@ async def test_publish_location_users_with_no_distance(test_cli, add_jwt, create
     locations = await conn_user_3.receive_json()
     assert locations['type'] == 'MAP'
     assert len(locations['data']) == 2
-    assert str(user_1.uid) in locations['data']
-    assert str(user_2.uid) in locations['data']
+    uids = [i['uid'] for i in locations['data']]
+    assert str(user_1.uid) in uids
+    assert str(user_2.uid) in uids
 
-    user_data = locations['data'][str(user_1.uid)]
+    user_data = locations['data'][0]
     assert user_data['distance'] is None
     assert {'uid', 'distance', 'longitude', 'latitude', 'last'} == set(user_data.keys())
 
@@ -68,9 +69,10 @@ async def test_publish_location_users_with_distance(test_cli, add_jwt, create_us
 
     locations = await conn_user_1.receive_json()
     assert locations['type'] == 'MAP'
+    uids = [i['uid'] for i in locations['data']]
     assert len(locations['data']) == 1
-    assert str(user_2.uid) in locations['data']
+    assert str(user_2.uid) in uids
 
-    user_data = locations['data'][str(user_2.uid)]
+    user_data = locations['data'][0]
     assert user_data['distance'] is not None
     assert {'uid', 'distance', 'longitude', 'latitude', 'last'} == set(user_data.keys())

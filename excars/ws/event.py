@@ -38,7 +38,7 @@ def get_publishers():
 
 
 def get_stream_message_handler(message_type: str):
-    return _stream_messages_registry[message_type]
+    return _stream_messages_registry.get(message_type)
 
 
 def discover():
