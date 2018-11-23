@@ -34,6 +34,10 @@ async def listeners(request, ws, user):
             await handler(request, message['data'], user)
 
 
+def _publishers(request, ws, user):
+    return [publisher(request, ws, user) for publisher in event.get_publishers()]
+
+
 async def _stream_events(request, ws, user):
     redis = request.app.redis
     user_uid = str(user.uid)
@@ -42,13 +46,15 @@ async def _stream_events(request, ws, user):
     # push message to stream just to create it
     await redis.xadd(
         stream=stream,
-        fields={b'type': b'USER_CONNECT', b'user': user_uid}
+        fields={b'type': b'CREATE', b'user': user_uid}
     )
 
-    await redis.xgroup_create(
-        stream=stream,
-        group_name=user_uid,
-    )
+    groups = [group[b'name'].decode() for group in await redis.xinfo_groups(stream)]
+    if user_uid not in groups:
+        await redis.xgroup_create(
+            stream=stream,
+            group_name=user_uid,
+        )
 
     while True:
         await asyncio.sleep(0.1)
@@ -64,7 +70,3 @@ async def _stream_events(request, ws, user):
             handler = event.get_stream_message_handler(message.pop(b'type', b'').decode())
             if handler:
                 await handler(request, ws, message, user)
-
-
-def _publishers(request, ws, user):
-    return [publisher(request, ws, user) for publisher in event.get_publishers()]
