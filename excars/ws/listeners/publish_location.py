@@ -7,7 +7,8 @@ USER_INFO_TTL = 60 * 30
 
 
 @event.listen('LOCATION')
-async def handler(request, data, user):
+async def handler(request, ws, data, user):
+    del ws
     await process_location(data, str(user.uid), request.app.redis)
 
 

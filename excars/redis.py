@@ -1,7 +1,7 @@
 import aioredis
 
 
-async def setup_redis(app, _):
+async def setup(app, _):
     app.redis = await aioredis.create_redis_pool(
         app.config.REDIS_HOST,
         db=app.config.REDIS_DB,
@@ -10,6 +10,6 @@ async def setup_redis(app, _):
     )
 
 
-async def stop_redis(app, _):
+async def stop(app, _):
     app.redis.close()
     await app.redis.wait_closed()
