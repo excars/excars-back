@@ -4,7 +4,7 @@ import pkgutil
 
 _listeners_registry = {}  # pylint: disable=invalid-name
 _publishers_registry = []  # pylint: disable=invalid-name
-_stream_messages_registry = {}  # pylint: disable=invalid-name
+_consumers_registry = {}  # pylint: disable=invalid-name
 
 
 def listen(event_type: str):
@@ -21,9 +21,9 @@ def publisher(func):
     return func
 
 
-def stream_handler(message_type: str):
+def consume(message_type: str):
     def deco(func):
-        _stream_messages_registry[message_type] = func
+        _consumers_registry[message_type] = func
         return func
 
     return deco
@@ -37,15 +37,15 @@ def get_publishers():
     return _publishers_registry.copy()
 
 
-def get_stream_message_handler(message_type: str):
-    return _stream_messages_registry.get(message_type)
+def get_consumers(message_type: str):
+    return _consumers_registry.get(message_type)
 
 
 def discover():
     pkgs = [
         'excars.ws.listeners',
         'excars.ws.publishers',
-        'excars.ws.stream_events',
+        'excars.ws.consumers',
     ]
 
     for pkg in pkgs:

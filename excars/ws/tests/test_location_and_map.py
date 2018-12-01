@@ -8,7 +8,7 @@ async def fake_coro():
 @pytest.mark.require_db
 @pytest.mark.require_redis
 async def test_publish_location(test_cli, add_jwt, mocker):
-    mocker.patch('excars.ws._stream_events', lambda *args, **kwargs: fake_coro())
+    mocker.patch('excars.ws.consumers.init', lambda *args, **kwargs: fake_coro())
     url = await add_jwt('/stream')
     conn = await test_cli.ws_connect(url)
     await conn.send_json({'data': {'longitude': 1, 'latitude': 1}, 'type': 'LOCATION'})
@@ -19,7 +19,7 @@ async def test_publish_location(test_cli, add_jwt, mocker):
 @pytest.mark.require_db
 @pytest.mark.require_redis
 async def test_publish_location_users_with_no_distance(test_cli, add_jwt, create_user, mocker):
-    mocker.patch('excars.ws._stream_events', lambda *args, **kwargs: fake_coro())
+    mocker.patch('excars.ws.consumers.init', lambda *args, **kwargs: fake_coro())
 
     user_1 = create_user(username='1')
     conn_user_1 = await test_cli.ws_connect(
@@ -53,7 +53,7 @@ async def test_publish_location_users_with_no_distance(test_cli, add_jwt, create
 @pytest.mark.require_db
 @pytest.mark.require_redis
 async def test_publish_location_users_with_distance(test_cli, add_jwt, create_user, mocker):
-    mocker.patch('excars.ws._stream_events', lambda *args, **kwargs: fake_coro())
+    mocker.patch('excars.ws.consumers.init', lambda *args, **kwargs: fake_coro())
 
     user_1 = create_user(username='1')
     conn_user_1 = await test_cli.ws_connect(

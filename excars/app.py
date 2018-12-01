@@ -10,17 +10,16 @@ def create_app():
 
     sanic_cors.CORS(app, automatic_options=True)
 
-    app.blueprint(ws.bp)
-
     auth.init(app)
+    ws.init(app)
 
     return app
 
 
 def setup_listeners(app):
-    app.register_listener(db.init, 'before_server_start')
-    app.register_listener(redis.setup_redis, 'before_server_start')
-    app.register_listener(redis.stop_redis, 'before_server_stop')
+    app.register_listener(db.setup, 'before_server_start')
+    app.register_listener(redis.setup, 'before_server_start')
+    app.register_listener(redis.stop, 'before_server_stop')
 
 
 application = create_app()

@@ -7,7 +7,7 @@ from .settings import db as db_settings
 database = db_url.connect(db_settings.DB_DSN, database=None)
 
 
-async def init(app, _):
+async def setup(app, _):
     _init_db(app, database)
     social_models.init_social(app, database)
     # create_tables(app, database)
