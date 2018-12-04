@@ -5,7 +5,7 @@ import ujson
 from .. import event
 from ..utils import USER_PREFIX
 
-PUB_LOCATION_FREQUENCY = 5
+PUB_LOCATION_FREQUENCY = 1
 EVENT = 'MAP'
 
 
@@ -26,20 +26,23 @@ async def get_users_data(user, redis):
         *[redis.hgetall(k) async for k in redis.iscan(match=f'{USER_PREFIX}*')],
         return_exceptions=True
     )
-    if not users_info or user.encode() not in [_data[b'uid'] for _data in users_info]:
+    if not users_info:
         return
-    distances = await get_users_distances(users_info, user, redis)
-    return {
-        info[b'uid']: {
-            'distance': distances[info[b'uid']],
+    if user.encode() not in [_data[b'uid'] for _data in users_info]:
+        distances = {}
+    else:
+        distances = await get_users_distances(users_info, user, redis)
+    return [
+        {
+            'distance': distances.get(info[b'uid']),
             **info,
         } for info in users_info if info[b'uid'] != user.encode()
-    }
+    ]
 
 
 async def get_users_distances(users_info, user, redis):
     _map = await _create_map(users_info, user, redis)
-    result = await redis.georadiusbymember(_map, user, 10, unit='km', with_dist=True)
+    result = await redis.georadiusbymember(_map, user, 50, unit='km', with_dist=True)
     await redis.delete(_map)
     return {geo.member: geo.dist for geo in result}
 

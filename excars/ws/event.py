@@ -4,6 +4,7 @@ import pkgutil
 
 _listeners_registry = {}  # pylint: disable=invalid-name
 _publishers_registry = []  # pylint: disable=invalid-name
+_consumers_registry = {}  # pylint: disable=invalid-name
 
 
 def listen(event_type: str):
@@ -20,6 +21,14 @@ def publisher(func):
     return func
 
 
+def consume(message_type: str):
+    def deco(func):
+        _consumers_registry[message_type] = func
+        return func
+
+    return deco
+
+
 def get_listener(event_type: str):
     return _listeners_registry[event_type]
 
@@ -28,10 +37,15 @@ def get_publishers():
     return _publishers_registry.copy()
 
 
+def get_consumers(message_type: str):
+    return _consumers_registry.get(message_type)
+
+
 def discover():
     pkgs = [
         'excars.ws.listeners',
         'excars.ws.publishers',
+        'excars.ws.consumers',
     ]
 
     for pkg in pkgs:
