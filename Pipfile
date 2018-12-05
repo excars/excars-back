@@ -13,6 +13,7 @@ sanic-jwt = "*"
 sanic-cors = "*"
 social-auth-app-flask-peewee = "*"
 social-storage-peewee = {git = "https://github.com/unmade/social-storage-peewee.git"}
+marshmallow = "*"
 
 [dev-packages]
 isort = "*"

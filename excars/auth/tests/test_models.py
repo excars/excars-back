@@ -16,7 +16,7 @@ def test_create_model():
 
     assert user.first_name == ''
     assert user.last_name == ''
-    assert user.full_name == ''
+    assert user.avatar == ''
 
 
 def test_user_to_dict():
@@ -30,5 +30,24 @@ def test_user_to_dict():
         'user_id': user.id,
         'uid': str(user.uid),
         'username': user.username,
+        'first_name': user.first_name,
+        'name': user.get_name(),
         'email': user.email,
+        'avatar': '',
     }
+
+
+@pytest.mark.parametrize(['username', 'first_name', 'last_name', 'expected'], [
+    ('user', '', '', 'user'),
+    ('user', 'Al', '', 'Al'),
+    ('user', 'Al', 'Green', 'Al Green'),
+    ('user', '', 'Green', 'Green')
+])
+def test_get_name(username, first_name, last_name, expected):
+    user = models.User(
+        username=username,
+        first_name=first_name,
+        last_name=last_name,
+    )
+
+    assert user.get_name() == expected
