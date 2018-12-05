@@ -25,6 +25,35 @@ async def test_join(test_cli, add_jwt, create_user):
     profile = await redis_cli.hgetall(f'user:{user.uid}')
 
     assert profile[b'role'] == b'driver'
+    assert profile[b'dest_name'] == b'Porto Bello'
+    assert profile[b'dest_lat'] == b'34.6709681'
+    assert profile[b'dest_lon'] == b'33.0396582'
+
+
+@pytest.mark.require_db
+@pytest.mark.require_redis
+async def test_join_invalid_role(test_cli, add_jwt, create_user):
+    user = create_user()
+    url = await add_jwt('/api/rides/join', user_id=user.id)
+
+    response = await test_cli.post(
+        url,
+        json={
+            'role': 'collector',
+            'destination': {
+                'name': 'Porto Bello',
+                'latitude': 34.6709681,
+                'longitude': 33.0396582,
+            },
+        }
+    )
+
+    assert response.status == 400
+
+    redis_cli = test_cli.app.redis
+    profile = await redis_cli.hgetall(f'user:{user.uid}')
+
+    assert profile == {}
 
 
 @pytest.mark.require_db
@@ -62,3 +91,13 @@ async def test_retrieve_profile(test_cli, create_user, add_jwt):
             'longitude': 33.0396582,
         },
     }
+
+
+@pytest.mark.require_db
+@pytest.mark.require_redis
+async def test_retrieve_profile_does_not_exists(test_cli, create_user, add_jwt):
+    user = create_user(first_name='John', last_name='Lennon')
+
+    url = await add_jwt(f'/api/profiles/{user.uid}', user_id=str(user.id))
+    response = await test_cli.get(url)
+    assert response.status == 404

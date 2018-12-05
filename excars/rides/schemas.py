@@ -1,6 +1,7 @@
 import marshmallow
-from marshmallow import fields
+from marshmallow import fields, validate
 
+from . import constants as const
 from . import entities
 
 
@@ -33,26 +34,15 @@ class ProfileRedisSchema(marshmallow.Schema):
     avatar = fields.Str()
     plate = fields.Str()
     role = fields.Str()
-    dest_name = fields.Str()
-    dest_lat = fields.Float()
-    dest_lon = fields.Float()
+    dest_name = fields.Str(attribute='destination.name')
+    dest_lat = fields.Float(attribute='destination.latitude')
+    dest_lon = fields.Float(attribute='destination.longitude')
 
     @marshmallow.post_load
     def make_profile(self, data):  # pylint: disable=no-self-use
-        return entities.Profile(
-            uid=data['uid'],
-            name=data['name'],
-            avatar=data['avatar'],
-            plate=data['plate'],
-            role=data['role'],
-            destination=entities.Destination(
-                name=data['dest_name'],
-                latitude=data['dest_lat'],
-                longitude=data['dest_lon'],
-            )
-        )
+        return entities.Profile(**data)
 
 
 class JoinPayload(marshmallow.Schema):
-    role = fields.Str()
+    role = fields.Str(validate=validate.OneOf(choices=[const.Role.DRIVER, const.Role.HITCHHIKER]))
     destination = fields.Nested(DestinationSchema)

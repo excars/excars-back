@@ -1,3 +1,5 @@
+import typing
+
 from excars import redis as redis_utils
 
 from . import entities, schemas
@@ -14,6 +16,8 @@ class ProfileRepository:
             **schemas.ProfileRedisSchema().dump(profile).data
         )
 
-    async def get(self, user_uid) -> entities.Profile:
+    async def get(self, user_uid) -> typing.Optional[entities.Profile]:
         data = redis_utils.decode(await self.redis_cli.hgetall(f'user:{user_uid}'))
+        if not data:
+            return None
         return schemas.ProfileRedisSchema().load(data).data
