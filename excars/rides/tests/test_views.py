@@ -5,7 +5,7 @@ import pytest
 @pytest.mark.require_redis
 async def test_join(test_cli, add_jwt, create_user):
     user = create_user()
-    url = await add_jwt('/api/rides/join', user_id=user.id)
+    url = await add_jwt('/api/rides/join', user_uid=user.uid)
 
     response = await test_cli.post(
         url,
@@ -34,7 +34,7 @@ async def test_join(test_cli, add_jwt, create_user):
 @pytest.mark.require_redis
 async def test_join_invalid_role(test_cli, add_jwt, create_user):
     user = create_user()
-    url = await add_jwt('/api/rides/join', user_id=user.id)
+    url = await add_jwt('/api/rides/join', user_uid=user.uid)
 
     response = await test_cli.post(
         url,
@@ -74,7 +74,7 @@ async def test_retrieve_profile(test_cli, create_user, add_jwt):
         dest_lon=33.0396582,
     )
 
-    url = await add_jwt(f'/api/profiles/{user.uid}', user_id=str(user.id))
+    url = await add_jwt(f'/api/profiles/{user.uid}', user_uid=str(user.uid))
     response = await test_cli.get(url)
     assert response.status == 200
 
@@ -98,6 +98,43 @@ async def test_retrieve_profile(test_cli, create_user, add_jwt):
 async def test_retrieve_profile_does_not_exists(test_cli, create_user, add_jwt):
     user = create_user(first_name='John', last_name='Lennon')
 
-    url = await add_jwt(f'/api/profiles/{user.uid}', user_id=str(user.id))
+    url = await add_jwt(f'/api/profiles/{user.uid}', user_uid=str(user.uid))
     response = await test_cli.get(url)
     assert response.status == 404
+
+
+@pytest.mark.require_db
+@pytest.mark.require_redis
+async def test_retrieve_me(test_cli, create_user, add_jwt):
+    user = create_user(first_name='Ringo', last_name='Starr')
+
+    redis_cli = test_cli.app.redis
+    await redis_cli.hmset_dict(
+        f'user:{user.uid}',
+        uid=str(user.uid),
+        name=user.get_name(),
+        avatar=user.avatar,
+        plate=user.plate,
+        role='driver',
+        dest_name='Porto Bello',
+        dest_lat=34.6709681,
+        dest_lon=33.0396582,
+    )
+
+    url = await add_jwt(f'/api/profiles/me', user_uid=user.uid)
+    response = await test_cli.get(url)
+    assert response.status == 200
+
+    content = await response.json()
+    assert content == {
+        'uid': str(user.uid),
+        'name': 'Ringo Starr',
+        'avatar': '',
+        'plate': '',
+        'role': 'driver',
+        'destination': {
+            'name': 'Porto Bello',
+            'latitude': 34.6709681,
+            'longitude': 33.0396582,
+        },
+    }

@@ -26,7 +26,7 @@ class User(peewee.Model):
 
     def to_dict(self):
         return {
-            'user_id': self.id,
+            'user_id': str(self.uid),
             'uid': str(self.uid),
             'username': self.username,
             'first_name': self.first_name,

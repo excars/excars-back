@@ -27,7 +27,7 @@ def test_user_to_dict():
     )
 
     assert user.to_dict() == {
-        'user_id': user.id,
+        'user_id': str(user.uid),
         'uid': str(user.uid),
         'username': user.username,
         'first_name': user.first_name,
