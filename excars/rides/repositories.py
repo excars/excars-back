@@ -2,7 +2,7 @@ import typing
 
 from excars import redis as redis_utils
 
-from . import entities, schemas
+from . import constants, entities, schemas
 
 
 class ProfileRepository:
@@ -24,3 +24,37 @@ class ProfileRepository:
             return None
 
         return data
+
+
+class RideRepository:
+
+    def __init__(self, redis_cli):
+        self.redis_cli = redis_cli
+
+    async def save(self, ride: entities.Ride):
+        await self.redis_cli.hmset_dict(
+            f'ride:{ride.uid}',
+            **schemas.RideRedisSchema().dump(ride).data
+        )
+
+
+class StreamRepository:
+
+    def __init__(self, redis_cli):
+        self.redis_cli = redis_cli
+
+    async def _produce(self, message_type, user_uid, payload):
+        await self.redis_cli.xadd(
+            f'stream:{user_uid}',
+            fields={
+                'type': message_type,
+                **payload,
+            },
+        )
+
+    async def request_ride(self, ride: entities.Ride):
+        await self._produce(
+            constants.MessageType.RIDE_REQUESTED,
+            user_uid=str(ride.receiver),
+            payload=schemas.RideStreamSchema().dump(ride).data,
+        )

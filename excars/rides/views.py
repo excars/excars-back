@@ -10,9 +10,7 @@ bp = sanic.Blueprint('rides')
 @bp.route('/api/rides/join', methods=['POST'])
 @sanic_jwt.inject_user()
 @sanic_jwt.protected()
-async def join(request, user, *args, **kwargs):
-    del args, kwargs
-
+async def join(request, user):
     payload = request.json
 
     data, errors = schemas.JoinPayload().load(payload)
@@ -57,4 +55,30 @@ async def retrieve_me(request, user):
 
     return sanic.response.json(
         schemas.ProfileSchema().dump(profile).data
+    )
+
+
+@bp.route('/api/rides', methods=['POST'])
+@sanic_jwt.inject_user()
+@sanic_jwt.protected()
+async def create_ride(request, user):
+    payload = request.json
+    data, errors = schemas.CreateRidePayload().load(payload)
+    if errors:
+        return sanic.response.json(
+            errors,
+            status=400,
+        )
+
+    redis_cli = request.app.redis
+    receiver = await repositories.ProfileRepository(redis_cli).get(data['receiver'])
+    if not receiver:
+        raise sanic.exceptions.NotFound('Not Found')
+
+    ride = factories.make_ride(sender_uid=user.uid, receiver_uid=receiver.uid)
+    await repositories.RideRepository(redis_cli).save(ride)
+    await repositories.StreamRepository(redis_cli).request_ride(ride)
+
+    return sanic.response.json(
+        schemas.RideRedisSchema().dump(ride).data
     )

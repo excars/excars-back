@@ -50,3 +50,18 @@ class JoinPayload(marshmallow.Schema):
         required=True,
     )
     destination = fields.Nested(DestinationSchema, required=True)
+
+
+class CreateRidePayload(marshmallow.Schema):
+    receiver = fields.Str()
+
+
+class RideRedisSchema(marshmallow.Schema):
+    uid = fields.Str()
+    sender = fields.Str()
+    receiver = fields.Str()
+
+
+class RideStreamSchema(marshmallow.Schema):
+    type = fields.Str()
+    ride_uid = fields.Str(attribute='uid')
