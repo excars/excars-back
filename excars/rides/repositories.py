@@ -16,8 +16,11 @@ class ProfileRepository:
             **schemas.ProfileRedisSchema().dump(profile).data
         )
 
-    async def get(self, user_uid) -> typing.Optional[entities.Profile]:
-        data = redis_utils.decode(await self.redis_cli.hgetall(f'user:{user_uid}'))
-        if 'role' not in data.keys():
+    async def get(self, user_uid: str) -> typing.Optional[entities.Profile]:
+        payload = redis_utils.decode(await self.redis_cli.hgetall(f'user:{user_uid}'))
+
+        data, errors = schemas.ProfileRedisSchema().load(payload)
+        if errors:
             return None
-        return schemas.ProfileRedisSchema().load(data).data
+
+        return data

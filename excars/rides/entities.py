@@ -1,3 +1,4 @@
+import typing
 from dataclasses import dataclass
 
 
@@ -14,5 +15,5 @@ class Profile:
     name: str
     avatar: str
     plate: str
-    role: str
-    destination: Destination
+    role: typing.Optional[str]
+    destination: typing.Optional[Destination]
