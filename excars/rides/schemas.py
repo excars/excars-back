@@ -1,0 +1,52 @@
+import marshmallow
+from marshmallow import fields, validate
+
+from . import constants, entities
+
+
+class DestinationSchema(marshmallow.Schema):
+    name = fields.Str(required=True)
+    latitude = fields.Float(required=True)
+    longitude = fields.Float(required=True)
+
+    @marshmallow.post_load
+    def make_destination(self, data):  # pylint: disable=no-self-use
+        return entities.Destination(**data)
+
+
+class ProfileSchema(marshmallow.Schema):
+    uid = fields.Str(required=True)
+    name = fields.Str(required=True)
+    avatar = fields.Str(required=True)
+    plate = fields.Str(required=True)
+    role = fields.Str(required=True)
+    destination = fields.Nested(DestinationSchema, required=True)
+
+    @marshmallow.post_load
+    def make_profile(self, data):  # pylint: disable=no-self-use
+        return entities.Profile(**data)
+
+
+class ProfileRedisSchema(marshmallow.Schema):
+    uid = fields.Str(required=True)
+    name = fields.Str(required=True)
+    avatar = fields.Str(required=True)
+    plate = fields.Str(required=True)
+    role = fields.Str(required=True)
+    dest_name = fields.Str(attribute='destination.name', required=True)
+    dest_lat = fields.Float(attribute='destination.latitude', required=True)
+    dest_lon = fields.Float(attribute='destination.longitude', required=True)
+
+    @marshmallow.post_load
+    def make_profile(self, data):  # pylint: disable=no-self-use
+        return entities.Profile(**data)
+
+
+class JoinPayload(marshmallow.Schema):
+    role = fields.Str(
+        validate=validate.OneOf(
+            choices=[constants.Role.DRIVER, constants.Role.HITCHHIKER]
+        ),
+        required=True,
+    )
+    destination = fields.Nested(DestinationSchema, required=True)

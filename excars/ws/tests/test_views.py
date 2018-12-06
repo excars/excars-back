@@ -125,7 +125,7 @@ async def test_stream_consumer(test_cli, add_jwt, create_user, consumer_event):
     del consumer_event
 
     user = create_user(uid='a12d909f-81bb-408e-a337-b2d1b761c031')
-    url = await add_jwt('/stream', user_id=user.id)
+    url = await add_jwt('/stream', user_uid=user.uid)
     stream = utils.get_user_stream(str(user.uid))
     conn = await test_cli.ws_connect(url)
 

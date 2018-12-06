@@ -1,7 +1,7 @@
 import sanic
 import sanic_cors
 
-from excars import auth, db, redis, settings, ws
+from excars import auth, db, redis, rides, settings, ws
 
 
 def create_app():
@@ -11,6 +11,7 @@ def create_app():
     sanic_cors.CORS(app, automatic_options=True)
 
     auth.init(app)
+    rides.init(app)
     ws.init(app)
 
     return app

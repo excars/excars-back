@@ -36,7 +36,7 @@ async def retrieve_user(request, payload, *args, **kwargs):
     if payload:
         user_id = payload.get('user_id', None)
         try:
-            user = models.User.get_by_id(user_id)
+            user = models.User.get(models.User.uid == user_id)
         except models.User.DoesNotExist:
             return None
 
