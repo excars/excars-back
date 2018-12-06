@@ -138,3 +138,23 @@ async def test_retrieve_me(test_cli, create_user, add_jwt):
             'longitude': 33.0396582,
         },
     }
+
+
+@pytest.mark.require_db
+@pytest.mark.require_redis
+async def test_retrieve_me_no(test_cli, create_user, add_jwt):
+    user = create_user(first_name='Ringo', last_name='Starr')
+
+    url = await add_jwt(f'/api/profiles/me', user_uid=user.uid)
+    response = await test_cli.get(url)
+    assert response.status == 200
+
+    content = await response.json()
+    assert content == {
+        'uid': str(user.uid),
+        'name': 'Ringo Starr',
+        'avatar': '',
+        'plate': '',
+        'destination': None,
+        'role': None,
+    }

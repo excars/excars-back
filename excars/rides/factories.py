@@ -1,7 +1,7 @@
 from . import entities
 
 
-def make_profile(user, role, destination) -> entities.Profile:
+def make_profile(user, role=None, destination=None) -> entities.Profile:
     return entities.Profile(
         uid=str(user.uid),
         name=user.get_name(),

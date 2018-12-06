@@ -18,6 +18,6 @@ class ProfileRepository:
 
     async def get(self, user_uid) -> typing.Optional[entities.Profile]:
         data = redis_utils.decode(await self.redis_cli.hgetall(f'user:{user_uid}'))
-        if not data:
+        if 'role' not in data.keys():
             return None
         return schemas.ProfileRedisSchema().load(data).data
