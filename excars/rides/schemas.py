@@ -61,9 +61,9 @@ class UpdateRidePayload(marshmallow.Schema):
 
 
 class RideRedisSchema(marshmallow.Schema):
-    uid = fields.Str()
-    sender = fields.Str()
-    receiver = fields.Str()
+    uid = fields.Str(required=True)
+    sender = fields.Str(required=True)
+    receiver = fields.Str(required=True)
 
     @marshmallow.post_load
     def make_ride(self, data):  # pylint: disable=no-self-use

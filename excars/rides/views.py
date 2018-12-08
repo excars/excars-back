@@ -94,6 +94,8 @@ async def update_ride(request, uid, *args, **kwargs):
 
     redis_cli = request.app.redis
     ride = await repositories.RideRepository(redis_cli).get(uid)
+    if not ride:
+        raise sanic.exceptions.NotFound('Not Found')
 
     await repositories.StreamRepository(redis_cli).update_ride(ride, data['status'])
 

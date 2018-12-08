@@ -16,7 +16,7 @@ async def ride_accepted(request, ws, message, user):
 
 @event.consume(constants.MessageType.RIDE_DECLINED)
 async def ride_declined(request, ws, message, user):
-    return await _send_event(constants.MessageType.RIDE_ACCEPTED, request, ws, message, user)
+    return await _send_event(constants.MessageType.RIDE_DECLINED, request, ws, message, user)
 
 
 @event.consume(constants.MessageType.RIDE_CANCELLED)
@@ -38,7 +38,7 @@ async def _send_event(message_type, request, ws, message, user):
     await ws.send(ujson.dumps({
         'type': message_type,
         'data': {
-            'ride_uid': ride.uid,
+            'uid': ride.uid,
             'sender': schemas.ProfileSchema().dump(sender).data,
             'receiver': schemas.ProfileSchema().dump(receiver).data,
         }

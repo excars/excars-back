@@ -37,9 +37,14 @@ class RideRepository:
             **schemas.RideRedisSchema().dump(ride).data
         )
 
-    async def get(self, ride_uid: str) -> entities.Ride:
+    async def get(self, ride_uid: str) -> typing.Optional[entities.Ride]:
         payload = redis_utils.decode(await self.redis_cli.hgetall(f'ride:{ride_uid}'))
-        return schemas.RideRedisSchema().load(payload).data
+
+        data, errors = schemas.RideRedisSchema().load(payload)
+        if errors:
+            return None
+
+        return data
 
 
 class StreamRepository:
