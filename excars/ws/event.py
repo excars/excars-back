@@ -46,6 +46,7 @@ def discover():
         'excars.ws.listeners',
         'excars.ws.publishers',
         'excars.ws.consumers',
+        'excars.rides',
     ]
 
     for pkg in pkgs:

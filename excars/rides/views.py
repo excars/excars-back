@@ -82,3 +82,21 @@ async def create_ride(request, user):
     return sanic.response.json(
         schemas.RideRedisSchema().dump(ride).data
     )
+
+
+@bp.route('/api/rides/<uid:uuid>', methods=['PUT'])
+@sanic_jwt.protected()
+async def update_ride(request, uid, *args, **kwargs):
+    del args, kwargs
+
+    payload = request.json
+    data, _ = schemas.UpdateRidePayload().load(payload)
+
+    redis_cli = request.app.redis
+    ride = await repositories.RideRepository(redis_cli).get(uid)
+
+    await repositories.StreamRepository(redis_cli).update_ride(ride, data['status'])
+
+    return sanic.response.json(
+        schemas.RideRedisSchema().dump(ride).data
+    )

@@ -37,6 +37,10 @@ class RideRepository:
             **schemas.RideRedisSchema().dump(ride).data
         )
 
+    async def get(self, ride_uid: str) -> entities.Ride:
+        payload = redis_utils.decode(await self.redis_cli.hgetall(f'ride:{ride_uid}'))
+        return schemas.RideRedisSchema().load(payload).data
+
 
 class StreamRepository:
 
@@ -56,5 +60,17 @@ class StreamRepository:
         await self._produce(
             constants.MessageType.RIDE_REQUESTED,
             user_uid=str(ride.receiver),
+            payload=schemas.RideStreamSchema().dump(ride).data,
+        )
+
+    async def update_ride(self, ride: entities.Ride, status: str):
+        event_map = {
+            'accept': constants.MessageType.RIDE_ACCEPTED,
+            'decline': constants.MessageType.RIDE_DECLINED,
+            'cancel': constants.MessageType.RIDE_CANCELLED,
+        }
+        await self._produce(
+            event_map[status],
+            user_uid=str(ride.sender),
             payload=schemas.RideStreamSchema().dump(ride).data,
         )

@@ -32,12 +32,18 @@ async def get_users_data(user, redis):
         distances = {}
     else:
         distances = await get_users_distances(users_info, user, redis)
-    return [
+    _map = [
         {
             'distance': distances.get(info[b'uid']),
             **info,
         } for info in users_info if info[b'uid'] != user.encode()
     ]
+
+    for item in _map:
+        item[b'latitude'] = float(item[b'latitude'])
+        item[b'longitude'] = float(item[b'longitude'])
+
+    return _map
 
 
 async def get_users_distances(users_info, user, redis):
