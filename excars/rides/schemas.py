@@ -60,6 +60,12 @@ class UpdateRidePayload(marshmallow.Schema):
     status = fields.Str()
 
 
+class WSLocationPayload(marshmallow.Schema):
+    latitude = fields.Float(required=True)
+    longitude = fields.Float(required=True)
+    course = fields.Float(required=True)
+
+
 class RideRedisSchema(marshmallow.Schema):
     uid = fields.Str(required=True)
     sender = fields.Str(required=True)
@@ -73,3 +79,14 @@ class RideRedisSchema(marshmallow.Schema):
 class RideStreamSchema(marshmallow.Schema):
     type = fields.Str()
     ride_uid = fields.Str(attribute='uid')
+
+
+class UserLocationSchema(marshmallow.Schema):
+    user_uid = fields.Str(required=True)
+    latitude = fields.Float(required=True)
+    longitude = fields.Float(required=True)
+    course = fields.Float(required=True)
+
+    @marshmallow.post_load
+    def make_user_location(self, data):  # pylint: disable=no-self-use
+        return entities.UserLocation(**data)

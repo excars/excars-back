@@ -24,3 +24,11 @@ class Ride:
     uid: str
     sender: str
     receiver: str
+
+
+@dataclass
+class UserLocation:
+    user_uid: str
+    latitude: float
+    longitude: float
+    course: float

@@ -4,6 +4,8 @@ class Role:
 
 
 class MessageType:
+    LOCATION = 'LOCATION'
+    MAP = 'MAP'
     RIDE_REQUESTED = 'RIDE_REQUESTED'
     RIDE_ACCEPTED = 'RIDE_ACCEPTED'
     RIDE_DECLINED = 'RIDE_DECLINED'
