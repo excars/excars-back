@@ -41,3 +41,13 @@ def make_user_location(
         longitude=longitude,
         course=course,
     )
+
+
+def make_message(
+        message_type: str,
+        payload: typing.Dict[str, typing.Any]
+):
+    return entities.Message(
+        type=message_type,
+        data=payload
+    )

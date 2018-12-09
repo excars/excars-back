@@ -3,26 +3,25 @@ import asyncio
 import ujson
 from excars.ws import event
 
-from . import constants, repositories
-
-PUB_LOCATION_FREQUENCY = 1
+from . import constants, factories, repositories, schemas
 
 
 @event.publisher
 async def publish_map(request, ws, user):
     redis_cli = request.app.redis
     repo = repositories.UserLocationRepository(redis_cli)
+    frequency = 1
 
     while True:
-        await asyncio.sleep(PUB_LOCATION_FREQUENCY)
+        await asyncio.sleep(frequency)
 
         locations = await repo.list(exclude=user.uid)
         if not locations:
             continue
 
-        message = {
-            'type': constants.MessageType.MAP,
-            'data': locations
-        }
+        message = factories.make_message(
+            constants.MessageType.MAP,
+            payload=schemas.UserLocationSchema().dump(locations, many=True).data,
+        )
 
-        await ws.send(ujson.dumps(message))
+        await ws.send(ujson.dumps(schemas.MessageSchema().dump(message).data))

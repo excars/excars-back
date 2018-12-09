@@ -1,7 +1,7 @@
 import ujson
 from excars.ws import event
 
-from . import constants, repositories, schemas
+from . import constants, factories, repositories, schemas
 
 
 @event.consume(constants.MessageType.RIDE_REQUESTED)
@@ -35,11 +35,13 @@ async def _send_event(message_type, request, ws, message, user):
     sender = await repositories.ProfileRepository(redis_cli).get(ride.sender)
     receiver = await repositories.ProfileRepository(redis_cli).get(ride.receiver)
 
-    await ws.send(ujson.dumps({
-        'type': message_type,
-        'data': {
+    message = factories.make_message(
+        message_type,
+        payload={
             'uid': ride.uid,
             'sender': schemas.ProfileSchema().dump(sender).data,
             'receiver': schemas.ProfileSchema().dump(receiver).data,
         }
-    }))
+    )
+
+    await ws.send(ujson.dumps(schemas.MessageSchema().dump(message).data))

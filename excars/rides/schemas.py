@@ -90,3 +90,8 @@ class UserLocationSchema(marshmallow.Schema):
     @marshmallow.post_load
     def make_user_location(self, data):  # pylint: disable=no-self-use
         return entities.UserLocation(**data)
+
+
+class MessageSchema(marshmallow.Schema):
+    type = fields.Str(required=True)
+    data = fields.Dict(required=True)

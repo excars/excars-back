@@ -32,3 +32,9 @@ class UserLocation:
     latitude: float
     longitude: float
     course: float
+
+
+@dataclass
+class Message:
+    type: str
+    data: typing.Dict[str, typing.Any]
