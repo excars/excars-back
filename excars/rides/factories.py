@@ -1,4 +1,5 @@
 import typing
+import uuid
 
 from excars.auth import models as auth_models
 
@@ -17,4 +18,12 @@ def make_profile(
         plate=user.plate,
         role=role,
         destination=destination,
+    )
+
+
+def make_ride(sender_uid: str, receiver_uid: str) -> entities.Ride:
+    return entities.Ride(
+        uid=str(uuid.uuid4()),
+        sender=str(sender_uid),
+        receiver=str(receiver_uid),
     )

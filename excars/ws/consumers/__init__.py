@@ -1,5 +1,7 @@
 import asyncio
 
+from excars import redis as redis_utils
+
 from .. import event, utils
 
 
@@ -34,7 +36,7 @@ async def init(request, ws, user):
             timeout=1,
         )
         for message in messages:
-            message = message[2]
-            handler = event.get_consumers(message.pop(b'type', b'').decode())
+            message = redis_utils.decode(message[2])
+            handler = event.get_consumers(message.get('type', ''))
             if handler:
                 await handler(request, ws, message, user)

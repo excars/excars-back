@@ -50,3 +50,26 @@ class JoinPayload(marshmallow.Schema):
         required=True,
     )
     destination = fields.Nested(DestinationSchema, required=True)
+
+
+class CreateRidePayload(marshmallow.Schema):
+    receiver = fields.Str()
+
+
+class UpdateRidePayload(marshmallow.Schema):
+    status = fields.Str()
+
+
+class RideRedisSchema(marshmallow.Schema):
+    uid = fields.Str(required=True)
+    sender = fields.Str(required=True)
+    receiver = fields.Str(required=True)
+
+    @marshmallow.post_load
+    def make_ride(self, data):  # pylint: disable=no-self-use
+        return entities.Ride(**data)
+
+
+class RideStreamSchema(marshmallow.Schema):
+    type = fields.Str()
+    ride_uid = fields.Str(attribute='uid')

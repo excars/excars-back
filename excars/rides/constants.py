@@ -1,3 +1,10 @@
 class Role:
     DRIVER = 'driver'
     HITCHHIKER = 'hitchhiker'
+
+
+class MessageType:
+    RIDE_REQUESTED = 'RIDE_REQUESTED'
+    RIDE_ACCEPTED = 'RIDE_ACCEPTED'
+    RIDE_DECLINED = 'RIDE_DECLINED'
+    RIDE_CANCELLED = 'RIDE_CANCELLED'

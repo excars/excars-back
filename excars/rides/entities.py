@@ -17,3 +17,10 @@ class Profile:
     plate: str
     role: typing.Optional[str]
     destination: typing.Optional[Destination]
+
+
+@dataclass
+class Ride:
+    uid: str
+    sender: str
+    receiver: str
