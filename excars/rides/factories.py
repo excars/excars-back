@@ -27,3 +27,27 @@ def make_ride(sender_uid: str, receiver_uid: str) -> entities.Ride:
         sender=str(sender_uid),
         receiver=str(receiver_uid),
     )
+
+
+def make_user_location(
+        user: auth_models.User,
+        latitude: float,
+        longitude: float,
+        course: float
+) -> entities.UserLocation:
+    return entities.UserLocation(
+        user_uid=str(user.uid),
+        latitude=latitude,
+        longitude=longitude,
+        course=course,
+    )
+
+
+def make_message(
+        message_type: str,
+        payload: typing.Dict[str, typing.Any]
+):
+    return entities.Message(
+        type=message_type,
+        data=payload
+    )

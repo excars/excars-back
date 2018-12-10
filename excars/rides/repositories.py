@@ -1,3 +1,4 @@
+import asyncio
 import typing
 
 from excars import redis as redis_utils
@@ -79,3 +80,36 @@ class StreamRepository:
             user_uid=str(ride.sender),
             payload=schemas.RideStreamSchema().dump(ride).data,
         )
+
+
+class UserLocationRepository:
+    TTL = 60 * 30
+
+    def __init__(self, redis_cli):
+        self.redis_cli = redis_cli
+
+    async def save(self, user, location: entities.UserLocation):
+        key = f'user:location:{user.uid}'
+        await self.redis_cli.hmset_dict(
+            key,
+            **schemas.UserLocationSchema().dump(location).data
+        )
+        await self.redis_cli.expire(key, self.TTL)
+
+    async def list(self, exclude: typing.Optional[str] = None) -> typing.List[entities.UserLocation]:
+        payload = await asyncio.gather(
+            *[
+                self.redis_cli.hgetall(k)
+                async for k in self.redis_cli.iscan(match='user:location:*')
+                if k != f'user:location:{exclude}'.encode()
+            ],
+            return_exceptions=True
+        )
+
+        payload = map(redis_utils.decode, payload)
+
+        location_list, errors = schemas.UserLocationSchema().load(payload, many=True)
+        if errors:
+            return []
+
+        return location_list
