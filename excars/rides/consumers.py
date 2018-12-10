@@ -1,4 +1,3 @@
-import ujson
 from excars.ws import event
 
 from . import constants, factories, repositories, schemas
@@ -44,4 +43,4 @@ async def _send_event(message_type, request, ws, message, user):
         }
     )
 
-    await ws.send(ujson.dumps(schemas.MessageSchema().dump(message).data))
+    await ws.send(schemas.MessageSchema().dumps(message).data)

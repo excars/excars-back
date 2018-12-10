@@ -46,7 +46,7 @@ def make_user_location(
 def make_message(
         message_type: str,
         payload: typing.Dict[str, typing.Any]
-):
+) -> entities.Message:
     return entities.Message(
         type=message_type,
         data=payload

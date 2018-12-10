@@ -1,6 +1,5 @@
 import asyncio
 
-import ujson
 from excars.ws import event
 
 from . import constants, factories, repositories, schemas
@@ -24,4 +23,4 @@ async def publish_map(request, ws, user):
             payload=schemas.UserLocationSchema().dump(locations, many=True).data,
         )
 
-        await ws.send(ujson.dumps(schemas.MessageSchema().dump(message).data))
+        await ws.send(schemas.MessageSchema().dumps(message).data)
