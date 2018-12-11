@@ -1,3 +1,5 @@
+import typing
+
 import marshmallow
 from marshmallow import fields, validate
 
@@ -57,7 +59,18 @@ class CreateRidePayload(marshmallow.Schema):
 
 
 class UpdateRidePayload(marshmallow.Schema):
-    status = fields.Str()
+    status = fields.Str(
+        validate=validate.OneOf(
+            choices=[constants.RideRequestStatus.ACCEPTED, constants.RideRequestStatus.DECLINED]
+        ),
+        required=True,
+    )
+    passenger_uid = fields.Str()
+
+    def __init__(self, *args, role: typing.Optional[str] = None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if role == constants.Role.DRIVER:
+            self.declared_fields['passenger_uid'].required = True
 
 
 class WSLocationPayload(marshmallow.Schema):
@@ -66,19 +79,11 @@ class WSLocationPayload(marshmallow.Schema):
     course = fields.Float(required=True)
 
 
-class RideRedisSchema(marshmallow.Schema):
-    uid = fields.Str(required=True)
-    sender = fields.Str(required=True)
-    receiver = fields.Str(required=True)
-
-    @marshmallow.post_load
-    def make_ride(self, data):  # pylint: disable=no-self-use
-        return entities.Ride(**data)
-
-
-class RideStreamSchema(marshmallow.Schema):
+class RideRequestStreamSchema(marshmallow.Schema):
     type = fields.Str()
-    ride_uid = fields.Str(attribute='uid')
+    ride_uid = fields.Str()
+    sender_uid = fields.Str(attribute='sender.uid')
+    receiver_uid = fields.Str(attribute='receiver.uid')
 
 
 class UserLocationSchema(marshmallow.Schema):
