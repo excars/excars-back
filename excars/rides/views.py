@@ -123,3 +123,17 @@ async def update_ride(request, uid, user):
     return sanic.response.json({
         'uid': ride_request.ride_uid
     })
+
+
+@bp.route('/api/rides/<uid:uuid>', methods=['GET'])
+@sanic_jwt.protected()
+async def ride_details(request, uid):
+    redis_cli = request.app.redis
+
+    ride = await repositories.RideRepository(redis_cli).get(uid)
+    if not ride:
+        raise sanic.exceptions.NotFound('Not Found')
+
+    return sanic.response.json(
+        schemas.RideSchema().dump(ride).data
+    )

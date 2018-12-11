@@ -86,6 +86,12 @@ class RideRequestStreamSchema(marshmallow.Schema):
     receiver_uid = fields.Str(attribute='receiver.uid')
 
 
+class RideSchema(marshmallow.Schema):
+    uid = fields.Str()
+    driver = fields.Nested(ProfileSchema)
+    passengers = fields.Nested(ProfileSchema, many=True)
+
+
 class UserLocationSchema(marshmallow.Schema):
     user_uid = fields.Str(required=True)
     latitude = fields.Float(required=True)

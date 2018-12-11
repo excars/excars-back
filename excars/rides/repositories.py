@@ -46,6 +46,15 @@ class RideRepository:
             ride_request.passenger.uid
         ))
 
+    async def get(self, ride_uid: str) -> entities.Ride:
+        payload = redis_utils.decode(await self.redis_cli.hgetall(f'ride:{ride_uid}'))
+
+        profile_repo = ProfileRepository(self.redis_cli)
+        driver = await profile_repo.get(ride_uid)
+        passengers = await asyncio.gather(*[profile_repo.get(user_uid) for user_uid in payload])
+
+        return entities.Ride(uid=ride_uid, driver=driver, passengers=passengers)
+
 
 class StreamRepository:
 
@@ -70,9 +79,8 @@ class StreamRepository:
 
     async def ride_updated(self, ride_request: entities.RideRequest):
         event_map = {
-            'accepted': constants.MessageType.RIDE_ACCEPTED,
-            'declined': constants.MessageType.RIDE_DECLINED,
-            'cancelled': constants.MessageType.RIDE_CANCELLED,
+            constants.RideRequestStatus.ACCEPTED: constants.MessageType.RIDE_ACCEPTED,
+            constants.RideRequestStatus.DECLINED: constants.MessageType.RIDE_DECLINED,
         }
         await self._produce(
             event_map[ride_request.status],

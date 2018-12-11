@@ -48,6 +48,19 @@ class RideRequest:
 
 
 @dataclass
+class PassengerStatus:
+    passenger_uid: str
+    status: str
+
+
+@dataclass
+class Ride:
+    uid: str
+    driver: Profile
+    passengers: typing.List[Profile]
+
+
+@dataclass
 class UserLocation:
     user_uid: str
     latitude: float
