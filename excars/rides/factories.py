@@ -1,9 +1,8 @@
 import typing
-import uuid
 
 from excars.auth import models as auth_models
 
-from . import entities
+from . import constants, entities
 
 
 def make_profile(
@@ -21,12 +20,22 @@ def make_profile(
     )
 
 
-def make_ride(sender_uid: str, receiver_uid: str) -> entities.Ride:
-    return entities.Ride(
-        uid=str(uuid.uuid4()),
-        sender=str(sender_uid),
-        receiver=str(receiver_uid),
-    )
+def make_ride_request(
+        sender: entities.Profile,
+        receiver: entities.Profile,
+        status: typing.Optional[str] = None
+) -> entities.RideRequest:
+    assert sender.role != receiver.role, 'Roles must be different'
+
+    if not status:
+        if sender.role == constants.Role.DRIVER:
+            status = constants.RideRequestStatus.OFFERED
+        elif sender.role == constants.Role.HITCHHIKER:
+            status = constants.RideRequestStatus.REQUESTED
+        else:
+            raise Exception(f'Unknown role for profile: {sender.uid}')
+
+    return entities.RideRequest(sender=sender, receiver=receiver, status=status)
 
 
 def make_user_location(
@@ -46,7 +55,7 @@ def make_user_location(
 def make_message(
         message_type: str,
         payload: typing.Dict[str, typing.Any]
-):
+) -> entities.Message:
     return entities.Message(
         type=message_type,
         data=payload

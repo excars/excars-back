@@ -32,20 +32,28 @@ class RideRepository:
     def __init__(self, redis_cli):
         self.redis_cli = redis_cli
 
-    async def save(self, ride: entities.Ride):
+    async def add(self, ride_request: entities.RideRequest):
         await self.redis_cli.hmset_dict(
-            f'ride:{ride.uid}',
-            **schemas.RideRedisSchema().dump(ride).data
+            f'ride:{ride_request.ride_uid}',
+            {
+                ride_request.passenger.uid: ride_request.status
+            },
         )
 
-    async def get(self, ride_uid: str) -> typing.Optional[entities.Ride]:
+    async def exists(self, ride_request: entities.RideRequest) -> bool:
+        return bool(await self.redis_cli.hexists(
+            f'ride:{ride_request.ride_uid}',
+            ride_request.passenger.uid
+        ))
+
+    async def get(self, ride_uid: str) -> entities.Ride:
         payload = redis_utils.decode(await self.redis_cli.hgetall(f'ride:{ride_uid}'))
 
-        data, errors = schemas.RideRedisSchema().load(payload)
-        if errors:
-            return None
+        profile_repo = ProfileRepository(self.redis_cli)
+        driver = await profile_repo.get(ride_uid)
+        passengers = await asyncio.gather(*[profile_repo.get(user_uid) for user_uid in payload])
 
-        return data
+        return entities.Ride(uid=ride_uid, driver=driver, passengers=passengers)
 
 
 class StreamRepository:
@@ -62,23 +70,26 @@ class StreamRepository:
             },
         )
 
-    async def request_ride(self, ride: entities.Ride):
+    async def ride_requested(self, ride_request: entities.RideRequest):
         await self._produce(
             constants.MessageType.RIDE_REQUESTED,
-            user_uid=str(ride.receiver),
-            payload=schemas.RideStreamSchema().dump(ride).data,
+            user_uid=str(ride_request.receiver),
+            payload=schemas.RideRequestStreamSchema().dump(ride_request).data,
         )
 
-    async def update_ride(self, ride: entities.Ride, status: str):
+    async def ride_updated(self, ride_request: entities.RideRequest):
         event_map = {
-            'accept': constants.MessageType.RIDE_ACCEPTED,
-            'decline': constants.MessageType.RIDE_DECLINED,
-            'cancel': constants.MessageType.RIDE_CANCELLED,
+            constants.RideRequestStatus.ACCEPTED: constants.MessageType.RIDE_ACCEPTED,
+            constants.RideRequestStatus.DECLINED: constants.MessageType.RIDE_DECLINED,
         }
         await self._produce(
-            event_map[status],
-            user_uid=str(ride.sender),
-            payload=schemas.RideStreamSchema().dump(ride).data,
+            event_map[ride_request.status],
+            user_uid=str(ride_request.receiver),
+            payload={
+                'ride_uid': ride_request.ride_uid,
+                'sender_uid': ride_request.sender.uid,
+                'receiver_uid': ride_request.receiver.uid,
+            },
         )
 
 

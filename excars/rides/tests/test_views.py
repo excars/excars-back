@@ -1,7 +1,5 @@
 # pylint: disable=redefined-outer-name
 
-import uuid
-
 import pytest
 
 
@@ -21,14 +19,14 @@ def join_payload():
 
 @pytest.fixture
 def user_to_redis(test_cli):
-    async def wrapper(user):
+    async def wrapper(user, role):
         await test_cli.app.redis.hmset_dict(
             f'user:{user.uid}',
             uid=str(user.uid),
             name=user.get_name(),
             avatar=user.avatar,
             plate=user.plate,
-            role='driver',
+            role=role,
             dest_name='Porto Bello',
             dest_lat=34.6709681,
             dest_lon=33.0396582,
@@ -38,12 +36,12 @@ def user_to_redis(test_cli):
 
 @pytest.fixture
 def ride_to_redis(test_cli):
-    async def wrapper(ride_uid, sender_uid, receiver_uid):
+    async def wrapper(driver_uid, passenger_uid):
         await test_cli.app.redis.hmset_dict(
-            f'ride:{ride_uid}',
-            uid=str(ride_uid),
-            sender=str(sender_uid),
-            receiver=str(receiver_uid),
+            f'ride:{driver_uid}',
+            {
+                str(passenger_uid): 'requested'
+            },
         )
     return wrapper
 
@@ -87,7 +85,7 @@ async def test_join_invalid_role(test_cli, add_jwt, create_user, join_payload):
 @pytest.mark.require_redis
 async def test_retrieve_profile(test_cli, create_user, add_jwt, user_to_redis):
     user = create_user(first_name='John', last_name='Lennon')
-    await user_to_redis(user)
+    await user_to_redis(user, role='driver')
 
     url = await add_jwt(f'/api/profiles/{user.uid}', user_uid=str(user.uid))
     response = await test_cli.get(url)
@@ -122,7 +120,7 @@ async def test_retrieve_profile_for_non_joined_user(test_cli, create_user, add_j
 @pytest.mark.require_redis
 async def test_retrieve_me(test_cli, create_user, add_jwt, user_to_redis):
     user = create_user(first_name='Ringo', last_name='Starr')
-    await user_to_redis(user)
+    await user_to_redis(user, role='driver')
 
     url = await add_jwt(f'/api/profiles/me', user_uid=user.uid)
     response = await test_cli.get(url)
@@ -165,12 +163,12 @@ async def test_retrieve_me_for_non_joined_user(test_cli, create_user, add_jwt):
 
 @pytest.mark.require_db
 @pytest.mark.require_redis
-async def test_create_ride(test_cli, create_user, add_jwt, user_to_redis):
+async def test_driver_creates_ride(test_cli, create_user, add_jwt, user_to_redis):
     sender = create_user(username='georgy', first_name='George', last_name='Harrison')
     receiver = create_user(username='macca', first_name='Paul', last_name='McCartney')
 
-    await user_to_redis(sender)
-    await user_to_redis(receiver)
+    await user_to_redis(sender, role='driver')
+    await user_to_redis(receiver, role='hitchhiker')
 
     url = await add_jwt(f'/api/rides', user_uid=sender.uid)
 
@@ -180,14 +178,20 @@ async def test_create_ride(test_cli, create_user, add_jwt, user_to_redis):
 
     assert response.status == 200
 
+    redis_cli = test_cli.app.redis
+    assert await redis_cli.hgetall(f'ride:{sender.uid}') == {
+        f'{receiver.uid}'.encode(): b'offered',
+    }
+
 
 @pytest.mark.require_db
 @pytest.mark.require_redis
-async def test_create_ride_receiver_does_not_exists(test_cli, create_user, add_jwt, user_to_redis):
+async def test_hitchhiker_creates_ride(test_cli, create_user, add_jwt, user_to_redis):
     sender = create_user(username='georgy', first_name='George', last_name='Harrison')
     receiver = create_user(username='macca', first_name='Paul', last_name='McCartney')
 
-    await user_to_redis(sender)
+    await user_to_redis(sender, role='hitchhiker')
+    await user_to_redis(receiver, role='driver')
 
     url = await add_jwt(f'/api/rides', user_uid=sender.uid)
 
@@ -195,36 +199,106 @@ async def test_create_ride_receiver_does_not_exists(test_cli, create_user, add_j
         'receiver': str(receiver.uid)
     })
 
-    assert response.status == 404
+    assert response.status == 200
+
+    redis_cli = test_cli.app.redis
+    assert await redis_cli.hgetall(f'ride:{receiver.uid}') == {
+        f'{sender.uid}'.encode(): b'requested',
+    }
 
 
 @pytest.mark.require_db
 @pytest.mark.require_redis
-async def test_update_ride(test_cli, create_user, add_jwt, ride_to_redis):
+async def test_driver_updates_ride(test_cli, create_user, add_jwt, user_to_redis, ride_to_redis):
     sender = create_user(username='georgy', first_name='George', last_name='Harrison')
     receiver = create_user(username='macca', first_name='Paul', last_name='McCartney')
 
-    ride_uid = uuid.uuid4()
-    await ride_to_redis(ride_uid, sender.uid, receiver.uid)
+    await user_to_redis(sender, role='driver')
+    await user_to_redis(receiver, role='hitchhiker')
+    await ride_to_redis(driver_uid=sender.uid, passenger_uid=receiver.uid)
 
-    url = await add_jwt(f'/api/rides/{ride_uid}', user_uid=receiver.uid)
+    ride_uid = sender.uid
+    url = await add_jwt(f'/api/rides/{ride_uid}', user_uid=sender.uid)
 
     response = await test_cli.put(url, json={
-        'status': 'accept'
+        'status': 'accepted',
+        'passenger_uid': str(receiver.uid),
     })
 
     assert response.status == 200
 
+    assert await test_cli.app.redis.hgetall(f'ride:{sender.uid}') == {
+        f'{receiver.uid}'.encode(): b'accepted',
+    }
+
 
 @pytest.mark.require_db
 @pytest.mark.require_redis
-async def test_update_ride_does_not_exists(test_cli, add_jwt):
-    ride_uid = uuid.uuid4()
+async def test_hitchhiker_updates_ride(test_cli, create_user, add_jwt, user_to_redis, ride_to_redis):
+    sender = create_user(username='georgy', first_name='George', last_name='Harrison')
+    receiver = create_user(username='macca', first_name='Paul', last_name='McCartney')
 
-    url = await add_jwt(f'/api/rides/{ride_uid}')
+    await user_to_redis(sender, role='hitchhiker')
+    await user_to_redis(receiver, role='driver')
+    await ride_to_redis(driver_uid=receiver.uid, passenger_uid=sender.uid)
+
+    ride_uid = receiver.uid
+    url = await add_jwt(f'/api/rides/{ride_uid}', user_uid=sender.uid)
 
     response = await test_cli.put(url, json={
-        'status': 'accept'
+        'status': 'accepted',
     })
 
-    assert response.status == 404
+    assert response.status == 200
+
+    assert await test_cli.app.redis.hgetall(f'ride:{receiver.uid}') == {
+        f'{sender.uid}'.encode(): b'accepted',
+    }
+
+
+@pytest.mark.required_db
+@pytest.mark.require_redis
+async def test_ride_details(test_cli, create_user, add_jwt, user_to_redis, ride_to_redis):
+    sender = create_user(username='georgy', first_name='George', last_name='Harrison')
+    receiver = create_user(username='macca', first_name='Paul', last_name='McCartney')
+
+    await user_to_redis(sender, role='driver')
+    await user_to_redis(receiver, role='hitchhiker')
+    await ride_to_redis(driver_uid=sender.uid, passenger_uid=receiver.uid)
+
+    ride_uid = str(sender.uid)
+    url = await add_jwt(f'/api/rides/{ride_uid}', user_uid=sender.uid)
+
+    response = await test_cli.get(url)
+
+    assert response.status == 200
+
+    assert await response.json() == {
+        'uid': ride_uid,
+        'driver': {
+            'avatar': '',
+            'destination': {
+                'longitude': 33.0396582,
+                'latitude': 34.6709681,
+                'name': 'Porto Bello'
+            },
+            'role': 'driver',
+            'uid': str(sender.uid),
+            'plate': '',
+            'name': 'George Harrison'
+        },
+        'passengers': [
+            {
+                'avatar': '',
+                'role': 'hitchhiker',
+                'destination': {
+                    'longitude': 33.0396582,
+                    'name': 'Porto Bello',
+                    'latitude': 34.6709681
+                },
+                'uid': str(receiver.uid),
+                'name': 'Paul McCartney',
+                'plate': ''
+            }
+        ],
+    }
