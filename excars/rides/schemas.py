@@ -106,3 +106,14 @@ class UserLocationSchema(marshmallow.Schema):
 class MessageSchema(marshmallow.Schema):
     type = fields.Str(required=True)
     data = fields.Dict(required=True)
+
+
+class UserLocationRedisSchema(marshmallow.Schema):
+    user_uid = fields.Str(required=True, attribute='member')
+    latitude = fields.Float(required=True, attribute='coord.latitude')
+    longitude = fields.Float(required=True, attribute='coord.longitude')
+    course = fields.Float(default=-1)
+
+    @marshmallow.post_dump
+    def make_user_location(self, data):  # pylint: disable=no-self-use
+        return entities.UserLocation(**data)

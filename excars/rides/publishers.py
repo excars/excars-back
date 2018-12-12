@@ -14,13 +14,13 @@ async def publish_map(request, ws, user):
     while True:
         await asyncio.sleep(frequency)
 
-        locations = await repo.list(exclude=user.uid)
+        locations = await repo.list(user_uid=user.uid)
         if not locations:
             continue
 
         message = factories.make_message(
             constants.MessageType.MAP,
-            payload=schemas.UserLocationSchema().dump(locations, many=True).data,
+            payload=schemas.UserLocationSchema(many=True).dump(locations).data,
         )
 
         await ws.send(schemas.MessageSchema().dumps(message).data)

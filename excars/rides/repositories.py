@@ -94,33 +94,32 @@ class StreamRepository:
 
 
 class UserLocationRepository:
+    KEY = 'user:locations'
     TTL = 60 * 30
 
     def __init__(self, redis_cli):
         self.redis_cli = redis_cli
 
     async def save(self, user, location: entities.UserLocation):
-        key = f'user:location:{user.uid}'
-        await self.redis_cli.hmset_dict(
-            key,
-            **schemas.UserLocationSchema().dump(location).data
-        )
-        await self.redis_cli.expire(key, self.TTL)
-
-    async def list(self, exclude: typing.Optional[str] = None) -> typing.List[entities.UserLocation]:
-        payload = await asyncio.gather(
-            *[
-                self.redis_cli.hgetall(k)
-                async for k in self.redis_cli.iscan(match='user:location:*')
-                if k != f'user:location:{exclude}'.encode()
-            ],
-            return_exceptions=True
+        await self.redis_cli.geoadd(
+            self.KEY,
+            latitude=location.latitude,
+            longitude=location.longitude,
+            member=str(user.uid),
         )
 
-        payload = map(redis_utils.decode, payload)
+    async def list(self, user_uid: str) -> typing.List[entities.UserLocation]:
+        user_uid = str(user_uid)
 
-        location_list, errors = schemas.UserLocationSchema().load(payload, many=True)
-        if errors:
+        if await self.redis_cli.zrank(self.KEY, user_uid) is None:
             return []
 
-        return location_list
+        geomembers = await self.redis_cli.georadiusbymember(
+            self.KEY,
+            member=user_uid,
+            radius=50,
+            unit='km',
+            with_coord=True,
+        )
+
+        return schemas.UserLocationRedisSchema(many=True).dump(geomembers).data
