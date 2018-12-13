@@ -33,12 +33,16 @@ class RideRepository:
         self.redis_cli = redis_cli
 
     async def add(self, ride_request: entities.RideRequest):
+        ride_uid = ride_request.ride_uid
         await self.redis_cli.hmset_dict(
-            f'ride:{ride_request.ride_uid}',
+            f'ride:{ride_uid}',
             {
                 ride_request.passenger.uid: ride_request.status
             },
         )
+        if ride_request.status == constants.RideRequestStatus.ACCEPTED:
+            await self.redis_cli.set(f'ride:user:{ride_request.sender.uid}', ride_uid)
+            await self.redis_cli.set(f'ride:user:{ride_request.passenger.uid}', ride_uid)
 
     async def exists(self, ride_request: entities.RideRequest) -> bool:
         return bool(await self.redis_cli.hexists(
@@ -54,6 +58,9 @@ class RideRepository:
         passengers = await asyncio.gather(*[profile_repo.get(user_uid) for user_uid in payload])
 
         return entities.Ride(uid=ride_uid, driver=driver, passengers=passengers)
+
+    async def get_ride_uid(self, user_uid: str) -> typing.Optional[str]:
+        return await self.redis_cli.get(f'ride:user:{user_uid}')
 
 
 class StreamRepository:

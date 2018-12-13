@@ -17,35 +17,6 @@ def join_payload():
     return wrapper
 
 
-@pytest.fixture
-def user_to_redis(test_cli):
-    async def wrapper(user, role):
-        await test_cli.app.redis.hmset_dict(
-            f'user:{user.uid}',
-            uid=str(user.uid),
-            name=user.get_name(),
-            avatar=user.avatar,
-            plate=user.plate,
-            role=role,
-            dest_name='Porto Bello',
-            dest_lat=34.6709681,
-            dest_lon=33.0396582,
-        )
-    return wrapper
-
-
-@pytest.fixture
-def ride_to_redis(test_cli):
-    async def wrapper(driver_uid, passenger_uid):
-        await test_cli.app.redis.hmset_dict(
-            f'ride:{driver_uid}',
-            {
-                str(passenger_uid): 'requested'
-            },
-        )
-    return wrapper
-
-
 @pytest.mark.require_db
 @pytest.mark.require_redis
 async def test_join(test_cli, add_jwt, create_user, join_payload):

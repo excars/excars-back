@@ -8,7 +8,7 @@ from . import constants, entities
 def make_profile(
         user: auth_models.User,
         role: typing.Optional[str] = None,
-        destination: typing.Optional[entities.Destination] = None
+        destination: typing.Optional[entities.Destination] = None,
 ) -> entities.Profile:
     return entities.Profile(
         uid=str(user.uid),
@@ -59,4 +59,17 @@ def make_message(
     return entities.Message(
         type=message_type,
         data=payload
+    )
+
+
+def make_map_item(
+        profile: entities.Profile,
+        location: entities.UserLocation,
+        has_same_ride: bool,
+) -> entities.MapItem:
+    return entities.MapItem(
+        user_uid=profile.uid,
+        role=profile.role,
+        location=location,
+        has_same_ride=has_same_ride,
     )

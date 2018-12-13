@@ -117,3 +117,10 @@ class UserLocationRedisSchema(marshmallow.Schema):
     @marshmallow.post_dump
     def make_user_location(self, data):  # pylint: disable=no-self-use
         return entities.UserLocation(**data)
+
+
+class MapItemSchema(marshmallow.Schema):
+    user_uid = fields.Str()
+    role = fields.Str()
+    location = fields.Nested(UserLocationSchema)
+    has_same_ride = fields.Bool()
