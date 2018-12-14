@@ -1,4 +1,5 @@
 import asyncio
+import uuid
 
 import pytest
 
@@ -9,13 +10,13 @@ async def test_publish_map_with_same_ride(test_cli, create_user, add_jwt, user_t
     driver = create_user(username='lennie', first_name='John', last_name='Lennon')
     passenger = create_user(username='georgy', first_name='George', last_name='Harrison')
 
-    await user_to_redis(driver, role='driver', ride_uid=driver.uid)
+    await user_to_redis(driver, role='driver')
     await user_to_redis(passenger, role='hitchhiker', ride_uid=driver.uid)
 
     url = await add_jwt('/stream', user_uid=driver.uid)
     conn = await test_cli.ws_connect(url)
 
-    locations = await conn.receive_json()
+    locations = await conn.receive_json(timeout=1.5)
 
     assert locations['data'] == [
         {
@@ -39,7 +40,7 @@ async def test_publish_map_different_ride(test_cli, create_user, add_jwt, user_t
     passenger = create_user(username='georgy', first_name='George', last_name='Harrison')
 
     await user_to_redis(driver, role='driver', ride_uid=None)
-    await user_to_redis(passenger, role='hitchhiker', ride_uid=driver.uid)
+    await user_to_redis(passenger, role='hitchhiker', ride_uid=uuid.uuid4())
 
     url = await add_jwt('/stream', user_uid=driver.uid)
     conn = await test_cli.ws_connect(url)
@@ -60,7 +61,7 @@ async def test_publish_map_no_ride(test_cli, create_user, add_jwt, user_to_redis
     url = await add_jwt('/stream', user_uid=driver.uid)
     conn = await test_cli.ws_connect(url)
 
-    locations = await conn.receive_json()
+    locations = await conn.receive_json(timeout=1.1)
 
     assert locations['data'] == [
         {
@@ -94,7 +95,7 @@ async def test_publish_map_no_profile(test_cli, create_user, add_jwt, user_to_re
     url = await add_jwt('/stream', user_uid=user.uid)
     conn = await test_cli.ws_connect(url)
 
-    locations = await conn.receive_json()
+    locations = await conn.receive_json(timeout=1.1)
 
     assert locations['data'] == [
         {

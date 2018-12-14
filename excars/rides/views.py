@@ -86,7 +86,7 @@ async def create_ride(request, user):
         receiver,
         status=constants.RideRequestStatus.REQUESTED,
     )
-    await repositories.RideRepository(redis_cli).add(ride_request)
+    await repositories.RideRepository(redis_cli).create_request(ride_request)
     await repositories.StreamRepository(redis_cli).ride_requested(ride_request)
 
     return sanic.response.json({
@@ -118,10 +118,10 @@ async def update_ride(request, uid, user):
         raise sanic.exceptions.NotFound('Not Found')
 
     ride_request = factories.make_ride_request(sender, receiver, status=schema.data['status'])
-    if not await ride_repo.exists(ride_request):
+    if not await ride_repo.request_exists(ride_request):
         raise sanic.exceptions.NotFound('Not Found')
 
-    await ride_repo.add(ride_request)
+    await ride_repo.update_request(ride_request)
     await stream_repo.ride_updated(ride_request)
 
     return sanic.response.json({

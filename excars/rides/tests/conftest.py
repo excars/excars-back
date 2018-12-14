@@ -21,18 +21,14 @@ def user_to_redis(test_cli):
             latitude=34.67096919407988,
             longitude=33.039657175540924,
         )
-        if ride_uid:
-            await test_cli.app.redis.set(f'ride:user:{user.uid}', str(ride_uid))
+        if ride_uid and ride_uid != str(user.uid):
+            await test_cli.app.redis.set(f'ride:{ride_uid}:passenger:{user.uid}', 'accepted')
+
     return wrapper
 
 
 @pytest.fixture
-def ride_to_redis(test_cli):
-    async def wrapper(driver_uid, passenger_uid, status='requested'):
-        await test_cli.app.redis.hmset_dict(
-            f'ride:{driver_uid}',
-            {
-                str(passenger_uid): status
-            },
-        )
+def ride_request_to_redis(test_cli):
+    async def wrapper(driver_uid, passenger_uid):
+        await test_cli.app.redis.set(f'ride:{driver_uid}:request:{passenger_uid}', 'requested')
     return wrapper
