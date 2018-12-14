@@ -150,9 +150,7 @@ async def test_driver_creates_ride(test_cli, create_user, add_jwt, user_to_redis
     assert response.status == 200
 
     redis_cli = test_cli.app.redis
-    assert await redis_cli.hgetall(f'ride:{sender.uid}') == {
-        f'{receiver.uid}'.encode(): b'requested',
-    }
+    assert await redis_cli.get(f'ride:{sender.uid}:request:{receiver.uid}') == b'requested'
 
 
 @pytest.mark.require_db
@@ -173,20 +171,18 @@ async def test_hitchhiker_creates_ride(test_cli, create_user, add_jwt, user_to_r
     assert response.status == 200
 
     redis_cli = test_cli.app.redis
-    assert await redis_cli.hgetall(f'ride:{receiver.uid}') == {
-        f'{sender.uid}'.encode(): b'requested',
-    }
+    assert await redis_cli.get(f'ride:{receiver.uid}:request:{sender.uid}') == b'requested'
 
 
 @pytest.mark.require_db
 @pytest.mark.require_redis
-async def test_driver_updates_ride(test_cli, create_user, add_jwt, user_to_redis, ride_to_redis):
+async def test_driver_updates_ride(test_cli, create_user, add_jwt, user_to_redis, ride_request_to_redis):
     sender = create_user(username='georgy', first_name='George', last_name='Harrison')
     receiver = create_user(username='macca', first_name='Paul', last_name='McCartney')
 
     await user_to_redis(sender, role='driver')
     await user_to_redis(receiver, role='hitchhiker')
-    await ride_to_redis(driver_uid=sender.uid, passenger_uid=receiver.uid)
+    await ride_request_to_redis(driver_uid=sender.uid, passenger_uid=receiver.uid)
 
     ride_uid = sender.uid
     url = await add_jwt(f'/api/rides/{ride_uid}', user_uid=sender.uid)
@@ -198,20 +194,19 @@ async def test_driver_updates_ride(test_cli, create_user, add_jwt, user_to_redis
 
     assert response.status == 200
 
-    assert await test_cli.app.redis.hgetall(f'ride:{sender.uid}') == {
-        f'{receiver.uid}'.encode(): b'accepted',
-    }
+    assert await test_cli.app.redis.exists(f'ride:{sender.uid}:request:{receiver.uid}') == 0
+    assert await test_cli.app.redis.get(f'ride:{sender.uid}:passenger:{receiver.uid}') == b'accepted'
 
 
 @pytest.mark.require_db
 @pytest.mark.require_redis
-async def test_hitchhiker_updates_ride(test_cli, create_user, add_jwt, user_to_redis, ride_to_redis):
+async def test_hitchhiker_updates_ride(test_cli, create_user, add_jwt, user_to_redis, ride_request_to_redis):
     sender = create_user(username='georgy', first_name='George', last_name='Harrison')
     receiver = create_user(username='macca', first_name='Paul', last_name='McCartney')
 
     await user_to_redis(sender, role='hitchhiker')
     await user_to_redis(receiver, role='driver')
-    await ride_to_redis(driver_uid=receiver.uid, passenger_uid=sender.uid)
+    await ride_request_to_redis(driver_uid=receiver.uid, passenger_uid=sender.uid)
 
     ride_uid = receiver.uid
     url = await add_jwt(f'/api/rides/{ride_uid}', user_uid=sender.uid)
@@ -222,20 +217,18 @@ async def test_hitchhiker_updates_ride(test_cli, create_user, add_jwt, user_to_r
 
     assert response.status == 200
 
-    assert await test_cli.app.redis.hgetall(f'ride:{receiver.uid}') == {
-        f'{sender.uid}'.encode(): b'accepted',
-    }
+    assert await test_cli.app.redis.exists(f'ride:{receiver.uid}:request:{sender.uid}') == 0
+    assert await test_cli.app.redis.get(f'ride:{receiver.uid}:passenger:{sender.uid}') == b'accepted'
 
 
 @pytest.mark.required_db
 @pytest.mark.require_redis
-async def test_ride_details(test_cli, create_user, add_jwt, user_to_redis, ride_to_redis):
+async def test_ride_details(test_cli, create_user, add_jwt, user_to_redis):
     sender = create_user(username='georgy', first_name='George', last_name='Harrison')
     receiver = create_user(username='macca', first_name='Paul', last_name='McCartney')
 
     await user_to_redis(sender, role='driver')
-    await user_to_redis(receiver, role='hitchhiker')
-    await ride_to_redis(driver_uid=sender.uid, passenger_uid=receiver.uid)
+    await user_to_redis(receiver, role='hitchhiker', ride_uid=sender.uid)
 
     ride_uid = str(sender.uid)
     url = await add_jwt(f'/api/rides/{ride_uid}', user_uid=sender.uid)
@@ -247,29 +240,29 @@ async def test_ride_details(test_cli, create_user, add_jwt, user_to_redis, ride_
     assert await response.json() == {
         'uid': ride_uid,
         'driver': {
+            'uid': str(sender.uid),
+            'name': 'George Harrison',
+            'role': 'driver',
+            'plate': '',
             'avatar': '',
             'destination': {
-                'longitude': 33.0396582,
+                'name': 'Porto Bello',
                 'latitude': 34.6709681,
-                'name': 'Porto Bello'
+                'longitude': 33.0396582,
             },
-            'role': 'driver',
-            'uid': str(sender.uid),
-            'plate': '',
-            'name': 'George Harrison'
         },
         'passengers': [
             {
-                'avatar': '',
-                'role': 'hitchhiker',
-                'destination': {
-                    'longitude': 33.0396582,
-                    'name': 'Porto Bello',
-                    'latitude': 34.6709681
-                },
                 'uid': str(receiver.uid),
                 'name': 'Paul McCartney',
-                'plate': ''
-            }
+                'role': 'hitchhiker',
+                'avatar': '',
+                'plate': '',
+                'destination': {
+                    'name': 'Porto Bello',
+                    'latitude': 34.6709681,
+                    'longitude': 33.0396582,
+                },
+            },
         ],
     }
