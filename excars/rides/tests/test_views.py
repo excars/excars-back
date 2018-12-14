@@ -151,7 +151,7 @@ async def test_driver_creates_ride(test_cli, create_user, add_jwt, user_to_redis
 
     redis_cli = test_cli.app.redis
     assert await redis_cli.hgetall(f'ride:{sender.uid}') == {
-        f'{receiver.uid}'.encode(): b'offered',
+        f'{receiver.uid}'.encode(): b'requested',
     }
 
 

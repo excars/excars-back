@@ -2,7 +2,7 @@ import typing
 
 from excars.auth import models as auth_models
 
-from . import constants, entities
+from . import entities
 
 
 def make_profile(
@@ -23,18 +23,9 @@ def make_profile(
 def make_ride_request(
         sender: entities.Profile,
         receiver: entities.Profile,
-        status: typing.Optional[str] = None
+        status: str
 ) -> entities.RideRequest:
     assert sender.role != receiver.role, 'Roles must be different'
-
-    if not status:
-        if sender.role == constants.Role.DRIVER:
-            status = constants.RideRequestStatus.OFFERED
-        elif sender.role == constants.Role.HITCHHIKER:
-            status = constants.RideRequestStatus.REQUESTED
-        else:
-            raise Exception(f'Unknown role for profile: {sender.uid}')
-
     return entities.RideRequest(sender=sender, receiver=receiver, status=status)
 
 

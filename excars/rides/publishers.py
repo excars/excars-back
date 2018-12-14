@@ -10,19 +10,19 @@ from . import constants, factories, repositories, schemas
 @event.publisher
 async def publish_map(request, ws, user):
     redis_cli = request.app.redis
-    repo = repositories.UserLocationRepository(redis_cli)
     frequency = 1
+
+    location_repo = repositories.UserLocationRepository(redis_cli)
+    profile_repo = repositories.ProfileRepository(redis_cli)
+    ride_repo = repositories.RideRepository(redis_cli)
 
     while True:
         await asyncio.sleep(frequency)
 
-        locations = await repo.list(user_uid=user.uid)
+        locations = await location_repo.list(user_uid=user.uid)
         if not locations:
             continue
 
-        profile_repo = repositories.ProfileRepository(redis_cli)
-
-        ride_repo = repositories.RideRepository(redis_cli)
         user_ride_uid = await ride_repo.get_ride_uid(user.uid)
 
         map_items = []
