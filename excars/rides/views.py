@@ -81,7 +81,11 @@ async def create_ride(request, user):
         sender = factories.make_profile(user, role, receiver.destination)
         await profile_repo.save(sender)
 
-    ride_request = factories.make_ride_request(sender, receiver)
+    ride_request = factories.make_ride_request(
+        sender,
+        receiver,
+        status=constants.RideRequestStatus.REQUESTED,
+    )
     await repositories.RideRepository(redis_cli).add(ride_request)
     await repositories.StreamRepository(redis_cli).ride_requested(ride_request)
 

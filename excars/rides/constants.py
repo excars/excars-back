@@ -21,7 +21,6 @@ class MessageType:
 
 
 class RideRequestStatus:
-    OFFERED = 'offered'
     REQUESTED = 'requested'
     ACCEPTED = 'accepted'
     DECLINED = 'declined'

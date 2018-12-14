@@ -48,12 +48,6 @@ class RideRequest:
 
 
 @dataclass
-class PassengerStatus:
-    passenger_uid: str
-    status: str
-
-
-@dataclass
 class Ride:
     uid: str
     driver: Profile
@@ -72,3 +66,11 @@ class UserLocation:
 class Message:
     type: str
     data: typing.Dict[str, typing.Any]
+
+
+@dataclass
+class MapItem:
+    user_uid: str
+    role: typing.Optional[str]
+    location: UserLocation
+    has_same_ride: bool
