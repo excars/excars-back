@@ -76,7 +76,7 @@ class StreamRepository:
     def __init__(self, redis_cli):
         self.redis_cli = redis_cli
 
-    async def _produce(self, message_type, user_uid, payload):
+    async def _produce(self, message_type, user_uid: str, payload):
         await self.redis_cli.xadd(
             f'stream:{user_uid}',
             fields={
@@ -88,7 +88,7 @@ class StreamRepository:
     async def ride_requested(self, ride_request: entities.RideRequest):
         await self._produce(
             constants.MessageType.RIDE_REQUESTED,
-            user_uid=str(ride_request.receiver),
+            user_uid=ride_request.receiver.uid,
             payload=schemas.RideRequestStreamSchema().dump(ride_request).data,
         )
 
@@ -99,7 +99,7 @@ class StreamRepository:
         }
         await self._produce(
             event_map[ride_request.status],
-            user_uid=str(ride_request.receiver),
+            user_uid=ride_request.sender.uid,
             payload={
                 'ride_uid': ride_request.ride_uid,
                 'sender_uid': ride_request.sender.uid,
