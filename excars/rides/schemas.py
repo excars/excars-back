@@ -65,12 +65,12 @@ class UpdateRidePayload(marshmallow.Schema):
         ),
         required=True,
     )
-    passenger_uid = fields.Str()
 
     def __init__(self, *args, role: typing.Optional[str] = None, **kwargs):
         super().__init__(*args, **kwargs)
         if role == constants.Role.DRIVER:
-            self.declared_fields['passenger_uid'].required = True
+            self.declared_fields['passenger_uid'] = fields.Str(required=True)
+            self.fields['passenger_uid'] = fields.Str(required=True)
 
 
 class WSLocationPayload(marshmallow.Schema):
