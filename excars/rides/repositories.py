@@ -1,4 +1,3 @@
-import asyncio
 import typing
 
 from excars import redis as redis_utils
@@ -57,7 +56,13 @@ class RideRepository:
 
         profile_repo = ProfileRepository(self.redis_cli)
         driver = await profile_repo.get(ride_uid)
-        passengers = await asyncio.gather(*[profile_repo.get(key) for key in passengers_key])
+
+        passengers = []
+        for key in passengers_key:
+            passengers.append(entities.Passenger(
+                profile=await profile_repo.get(key),
+                status=await self.redis_cli.get(f'ride:{ride_uid}:passenger:{key}'),
+            ))
 
         return entities.Ride(uid=ride_uid, driver=driver, passengers=passengers)
 

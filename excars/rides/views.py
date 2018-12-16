@@ -129,12 +129,14 @@ async def update_ride(request, uid, user):
     })
 
 
-@bp.route('/api/rides/<uid:uuid>', methods=['GET'])
+@bp.route('/api/rides/current', methods=['GET'])
+@sanic_jwt.inject_user()
 @sanic_jwt.protected()
-async def ride_details(request, uid):
-    redis_cli = request.app.redis
+async def current_ride(request, user):
+    ride_repo = repositories.RideRepository(request.app.redis)
 
-    ride = await repositories.RideRepository(redis_cli).get(uid)
+    ride_uid = await ride_repo.get_ride_uid(user.uid)
+    ride = await ride_repo.get(ride_uid)
     if not ride:
         raise sanic.exceptions.NotFound('Not Found')
 

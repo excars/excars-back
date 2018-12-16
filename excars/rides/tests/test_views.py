@@ -221,9 +221,9 @@ async def test_hitchhiker_updates_ride(test_cli, create_user, add_jwt, user_to_r
     assert await test_cli.app.redis.get(f'ride:{receiver.uid}:passenger:{sender.uid}') == b'accepted'
 
 
-@pytest.mark.required_db
+@pytest.mark.require_db
 @pytest.mark.require_redis
-async def test_ride_details(test_cli, create_user, add_jwt, user_to_redis):
+async def test_current_ride(test_cli, create_user, add_jwt, user_to_redis):
     sender = create_user(username='georgy', first_name='George', last_name='Harrison')
     receiver = create_user(username='macca', first_name='Paul', last_name='McCartney')
 
@@ -231,7 +231,7 @@ async def test_ride_details(test_cli, create_user, add_jwt, user_to_redis):
     await user_to_redis(receiver, role='hitchhiker', ride_uid=sender.uid)
 
     ride_uid = str(sender.uid)
-    url = await add_jwt(f'/api/rides/{ride_uid}', user_uid=sender.uid)
+    url = await add_jwt(f'/api/rides/current', user_uid=sender.uid)
 
     response = await test_cli.get(url)
 
@@ -253,16 +253,19 @@ async def test_ride_details(test_cli, create_user, add_jwt, user_to_redis):
         },
         'passengers': [
             {
-                'uid': str(receiver.uid),
-                'name': 'Paul McCartney',
-                'role': 'hitchhiker',
-                'avatar': '',
-                'plate': '',
-                'destination': {
-                    'name': 'Porto Bello',
-                    'latitude': 34.6709681,
-                    'longitude': 33.0396582,
+                'profile': {
+                    'uid': str(receiver.uid),
+                    'name': 'Paul McCartney',
+                    'role': 'hitchhiker',
+                    'avatar': '',
+                    'plate': '',
+                    'destination': {
+                        'name': 'Porto Bello',
+                        'latitude': 34.6709681,
+                        'longitude': 33.0396582,
+                    },
                 },
+                'status': 'accepted',
             },
         ],
     }
