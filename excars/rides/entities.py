@@ -48,10 +48,16 @@ class RideRequest:
 
 
 @dataclass
+class Passenger:
+    profile: Profile
+    status: str
+
+
+@dataclass
 class Ride:
     uid: str
     driver: Profile
-    passengers: typing.List[Profile]
+    passengers: typing.List[Passenger]
 
 
 @dataclass
