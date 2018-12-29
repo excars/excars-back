@@ -1,6 +1,6 @@
 import pytest
 
-
+from . import constants
 @pytest.fixture
 def user_to_redis(test_cli):
     async def wrapper(user, role, ride_uid=None):
@@ -12,14 +12,14 @@ def user_to_redis(test_cli):
             plate=user.plate,
             role=role,
             dest_name='Porto Bello',
-            dest_lat=34.6709681,
-            dest_lon=33.0396582,
+            dest_lat=constants.DEFAULT_LAT,
+            dest_lon=constants.DEFAULT_LONG,
         )
         await test_cli.app.redis.geoadd(
             'user:locations',
             member=str(user.uid),
-            latitude=34.67096919407988,
-            longitude=33.039657175540924,
+            latitude=constants.DEFAULT_LAT,
+            longitude=constants.DEFAULT_LONG,
         )
         if ride_uid and ride_uid != str(user.uid):
             await test_cli.app.redis.set(f'ride:{ride_uid}:passenger:{user.uid}', 'accepted')

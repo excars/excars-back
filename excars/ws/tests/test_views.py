@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-import ujson
+import json
 from excars.ws import event, utils
 
 
@@ -12,7 +12,7 @@ def listener_event():
     @event.listen('PING')
     async def handler(request, ws, message, user):
         del request, message, user
-        await ws.send(ujson.dumps({
+        await ws.send(json.dumps({
             'type': 'PONG',
             'connected': True,
         }))
@@ -30,7 +30,7 @@ def publisher_event():
     @event.publisher
     async def handler(request, ws, user):
         del request, user
-        await ws.send(ujson.dumps({
+        await ws.send(json.dumps({
             'type': 'PONG'
         }))
 
@@ -47,7 +47,7 @@ def consumer_event():
     @event.consume('XPING')
     async def handler(request, ws, message, user):
         del request, message, user
-        await ws.send(ujson.dumps({
+        await ws.send(json.dumps({
             'type': 'XPONG',
             'connected': True,
         }))

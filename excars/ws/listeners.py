@@ -1,12 +1,12 @@
-import ujson
+import json
 
-from .. import event
+from . import event
 
 
 async def init(request, ws, user):
     while True:
         try:
-            message = ujson.loads(await ws.recv())
+            message = json.loads(await ws.recv())
         except ValueError:
             continue
         handler = event.get_listener(message['type'])

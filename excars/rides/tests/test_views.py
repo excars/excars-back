@@ -2,6 +2,7 @@
 
 import pytest
 
+from . import constants
 
 @pytest.fixture
 def join_payload():
@@ -10,8 +11,8 @@ def join_payload():
             'role': role,
             'destination': {
                 'name': 'Porto Bello',
-                'latitude': 34.6709681,
-                'longitude': 33.0396582,
+                'latitude': constants.DEFAULT_LAT,
+                'longitude': constants.DEFAULT_LONG,
             },
         }
     return wrapper
@@ -32,8 +33,8 @@ async def test_join(test_cli, add_jwt, create_user, join_payload):
 
     assert profile[b'role'] == b'driver'
     assert profile[b'dest_name'] == b'Porto Bello'
-    assert profile[b'dest_lat'] == b'34.6709681'
-    assert profile[b'dest_lon'] == b'33.0396582'
+    assert profile[b'dest_lat'] == str(constants.DEFAULT_LAT).encode()
+    assert profile[b'dest_lon'] == str(constants.DEFAULT_LONG).encode()
 
 
 @pytest.mark.require_db
@@ -71,8 +72,8 @@ async def test_retrieve_profile(test_cli, create_user, add_jwt, user_to_redis):
         'role': 'driver',
         'destination': {
             'name': 'Porto Bello',
-            'latitude': 34.6709681,
-            'longitude': 33.0396582,
+            'latitude': constants.DEFAULT_LAT,
+            'longitude': constants.DEFAULT_LONG,
         },
     }
 
@@ -106,8 +107,8 @@ async def test_retrieve_me(test_cli, create_user, add_jwt, user_to_redis):
         'role': 'driver',
         'destination': {
             'name': 'Porto Bello',
-            'latitude': 34.6709681,
-            'longitude': 33.0396582,
+            'latitude': constants.DEFAULT_LAT,
+            'longitude': constants.DEFAULT_LONG,
         },
     }
 
@@ -247,8 +248,8 @@ async def test_current_ride(test_cli, create_user, add_jwt, user_to_redis):
             'avatar': '',
             'destination': {
                 'name': 'Porto Bello',
-                'latitude': 34.6709681,
-                'longitude': 33.0396582,
+                'latitude': constants.DEFAULT_LAT,
+                'longitude': constants.DEFAULT_LONG,
             },
         },
         'passengers': [
@@ -261,8 +262,8 @@ async def test_current_ride(test_cli, create_user, add_jwt, user_to_redis):
                     'plate': '',
                     'destination': {
                         'name': 'Porto Bello',
-                        'latitude': 34.6709681,
-                        'longitude': 33.0396582,
+                        'latitude': constants.DEFAULT_LAT,
+                        'longitude': constants.DEFAULT_LONG,
                     },
                 },
                 'status': 'accepted',

@@ -2,7 +2,7 @@ import asyncio
 
 from excars import redis as redis_utils
 
-from .. import event, utils
+from . import event, utils
 
 
 async def init(request, ws, user):
