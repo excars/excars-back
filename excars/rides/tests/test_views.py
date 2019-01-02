@@ -269,3 +269,73 @@ async def test_current_ride(test_cli, create_user, add_jwt, user_to_redis):
             },
         ],
     }
+
+
+@pytest.mark.require_db
+@pytest.mark.require_redis
+async def test_driver_leaves_ride(test_cli, create_user, add_jwt, user_to_redis):
+    driver = create_user(username='georgy', first_name='George', last_name='Harrison')
+    hitchhiker1 = create_user(username='macca', first_name='Paul', last_name='McCartney')
+    hitchhiker2 = create_user(username='ringo', first_name='Ringo', last_name='Starr')
+
+    await user_to_redis(driver, role='driver')
+    await user_to_redis(hitchhiker1, role='hitchhiker', ride_uid=driver.uid)
+    await user_to_redis(hitchhiker2, role='hitchhiker', ride_uid=driver.uid)
+
+    url = await add_jwt(f'/api/rides/leave', user_uid=driver.uid)
+
+    response = await test_cli.delete(url)
+
+    assert response.status == 204
+
+    passengers = [key async for key in test_cli.app.redis.iscan(match=f'ride:{driver.uid}:passenger:*')]
+    assert passengers == []
+
+
+@pytest.mark.require_db
+@pytest.mark.require_redis
+async def test_hitchhiker_leaves_ride(test_cli, create_user, add_jwt, user_to_redis):
+    driver = create_user(username='georgy', first_name='George', last_name='Harrison')
+    hitchhiker1 = create_user(username='macca', first_name='Paul', last_name='McCartney')
+    hitchhiker2 = create_user(username='ringo', first_name='Ringo', last_name='Starr')
+
+    await user_to_redis(driver, role='driver')
+    await user_to_redis(hitchhiker1, role='hitchhiker', ride_uid=driver.uid)
+    await user_to_redis(hitchhiker2, role='hitchhiker', ride_uid=driver.uid)
+
+    url = await add_jwt(f'/api/rides/leave', user_uid=hitchhiker1.uid)
+
+    response = await test_cli.delete(url)
+
+    assert response.status == 204
+
+    passengers = [key async for key in test_cli.app.redis.iscan(match=f'ride:{driver.uid}:passenger:*')]
+    assert passengers == [f'ride:{driver.uid}:passenger:{hitchhiker2.uid}'.encode()]
+
+
+@pytest.mark.require_db
+@pytest.mark.require_redis
+async def test_driver_leaves(test_cli, create_user, add_jwt, user_to_redis):
+    driver = create_user(username='georgy', first_name='George', last_name='Harrison')
+
+    await user_to_redis(driver, role='driver')
+
+    url = await add_jwt(f'/api/rides/leave', user_uid=driver.uid)
+
+    response = await test_cli.delete(url)
+
+    assert response.status == 204
+
+
+@pytest.mark.require_db
+@pytest.mark.require_redis
+async def test_hitchhiker_leaves(test_cli, create_user, add_jwt, user_to_redis):
+    hitchhiker = create_user(username='georgy', first_name='George', last_name='Harrison')
+
+    await user_to_redis(hitchhiker, role='hitchhiker')
+
+    url = await add_jwt(f'/api/rides/leave', user_uid=hitchhiker.uid)
+
+    response = await test_cli.delete(url)
+
+    assert response.status == 204
