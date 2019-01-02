@@ -41,6 +41,7 @@ class RideRepository:
             value=ride_request.status,
             seconds=30,
         )
+        await StreamRepository(self.redis_cli).ride_requested(ride_request)
 
     async def update_request(self, ride_request: entities.RideRequest):
         ride_key = f'ride:{ride_request.ride_uid}'
@@ -48,6 +49,12 @@ class RideRepository:
 
         status = ride_request.status
         await self.redis_cli.set(f'{ride_key}:passenger:{ride_request.passenger.uid}', status)
+
+        stream_repo = StreamRepository(self.redis_cli)
+        await stream_repo.request_updated(ride_request)
+
+        ride = await self.get(ride_request.ride_uid)
+        await stream_repo.ride_updated(ride)
 
     async def request_exists(self, ride_request: entities.RideRequest) -> bool:
         return bool(await self.redis_cli.exists(
@@ -80,7 +87,11 @@ class RideRepository:
 
     async def exclude(self, user_uid: str) -> None:
         ride_uid = await self.get_ride_uid(user_uid)
-        await self.redis_cli.delete(f'ride:{ride_uid}:passenger:{user_uid}')
+        if ride_uid:
+            await self.redis_cli.delete(f'ride:{ride_uid}:passenger:{user_uid}')
+
+            ride = await self.get(ride_uid)
+            await StreamRepository(self.redis_cli).ride_updated(ride)
 
     async def get_ride_uid(self, user_uid: str) -> typing.Optional[str]:
         async for key in self.redis_cli.iscan(match=f'ride:*:passenger:{user_uid}'):
@@ -97,7 +108,7 @@ class StreamRepository:
     def __init__(self, redis_cli):
         self.redis_cli = redis_cli
 
-    async def _produce(self, message_type, user_uid: str, payload):
+    async def _produce(self, message_type: str, user_uid: str, payload: dict):
         await self.redis_cli.xadd(
             f'stream:{user_uid}',
             fields={
@@ -106,6 +117,9 @@ class StreamRepository:
             },
         )
 
+    async def _broadcast(self, message_type: str, uids: typing.List[str], payload: dict):
+        await asyncio.gather(*[self._produce(message_type, uid, payload) for uid in uids])
+
     async def ride_requested(self, ride_request: entities.RideRequest):
         await self._produce(
             constants.MessageType.RIDE_REQUESTED,
@@ -113,10 +127,10 @@ class StreamRepository:
             payload=schemas.RideRequestStreamSchema().dump(ride_request).data,
         )
 
-    async def ride_updated(self, ride_request: entities.RideRequest):
+    async def request_updated(self, ride_request: entities.RideRequest):
         event_map = {
-            constants.RideRequestStatus.ACCEPTED: constants.MessageType.RIDE_ACCEPTED,
-            constants.RideRequestStatus.DECLINED: constants.MessageType.RIDE_DECLINED,
+            constants.RideRequestStatus.ACCEPTED: constants.MessageType.RIDE_REQUEST_ACCEPTED,
+            constants.RideRequestStatus.DECLINED: constants.MessageType.RIDE_REQUEST_DECLINED,
         }
         await self._produce(
             event_map[ride_request.status],
@@ -128,17 +142,28 @@ class StreamRepository:
             },
         )
 
+    async def ride_updated(self, ride: entities.Ride):
+        user_uids = [passenger.profile.uid for passenger in ride.passengers]
+        user_uids.append(ride.driver.uid)
+
+        await self._broadcast(
+            constants.MessageType.RIDE_UPDATED,
+            user_uids,
+            payload={
+                'ride_uid': ride.uid,
+            }
+        )
+
     async def ride_cancelled(self, ride: entities.Ride):
-        for passenger in ride.passengers:
-            await self._produce(
-                constants.MessageType.RIDE_CANCELLED,
-                user_uid=passenger.profile.uid,
-                payload={
-                    'ride_uid': ride.uid,
-                    'sender_uid': ride.driver.uid,
-                    'receiver_uid': passenger.profile.uid,
-                },
-            )
+        user_uids = [passenger.profile.uid for passenger in ride.passengers]
+
+        await self._broadcast(
+            constants.MessageType.RIDE_CANCELLED,
+            user_uids,
+            payload={
+                'ride_uid': ride.uid,
+            }
+        )
 
 
 class UserLocationRepository:
