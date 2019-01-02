@@ -143,3 +143,24 @@ async def current_ride(request, user):
     return sanic.response.json(
         schemas.RideSchema().dump(ride).data
     )
+
+
+@bp.route('/api/rides/leave', methods=['DELETE'])
+@sanic_jwt.inject_user()
+@sanic_jwt.protected()
+async def leave(request, user):
+    profile_repo = repositories.ProfileRepository(request.app.redis)
+    ride_repo = repositories.RideRepository(request.app.redis)
+
+    profile = await profile_repo.get(user.uid)
+    if not profile:
+        raise sanic.exceptions.NotFound('Not Found')
+
+    if profile.role == constants.Role.DRIVER:
+        await ride_repo.delete(ride_uid=profile.uid)
+    else:
+        await ride_repo.exclude(user_uid=profile.uid)
+
+    await profile_repo.delete(profile.uid)
+
+    return sanic.response.json({}, status=204)

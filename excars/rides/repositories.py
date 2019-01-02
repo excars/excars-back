@@ -1,3 +1,4 @@
+import asyncio
 import typing
 
 from excars import redis as redis_utils
@@ -24,6 +25,9 @@ class ProfileRepository:
             return None
 
         return data
+
+    async def delete(self, user_uid: str) -> None:
+        await self.redis_cli.delete(f'user:{user_uid}')
 
 
 class RideRepository:
@@ -65,6 +69,18 @@ class RideRepository:
             ))
 
         return entities.Ride(uid=ride_uid, driver=driver, passengers=passengers)
+
+    async def delete(self, ride_uid: str) -> None:
+        ride = await self.get(ride_uid)
+
+        await StreamRepository(self.redis_cli).ride_cancelled(ride)
+
+        keys = [key async for key in self.redis_cli.iscan(match=f'ride:{ride_uid}:passenger:*')]
+        await asyncio.gather(*[self.redis_cli.delete(key) for key in keys])
+
+    async def exclude(self, user_uid: str) -> None:
+        ride_uid = await self.get_ride_uid(user_uid)
+        await self.redis_cli.delete(f'ride:{ride_uid}:passenger:{user_uid}')
 
     async def get_ride_uid(self, user_uid: str) -> typing.Optional[str]:
         async for key in self.redis_cli.iscan(match=f'ride:*:passenger:{user_uid}'):
@@ -111,6 +127,18 @@ class StreamRepository:
                 'receiver_uid': ride_request.receiver.uid,
             },
         )
+
+    async def ride_cancelled(self, ride: entities.Ride):
+        for passenger in ride.passengers:
+            await self._produce(
+                constants.MessageType.RIDE_CANCELLED,
+                user_uid=passenger.profile.uid,
+                payload={
+                    'ride_uid': ride.uid,
+                    'sender_uid': ride.driver.uid,
+                    'receiver_uid': passenger.profile.uid,
+                },
+            )
 
 
 class UserLocationRepository:
