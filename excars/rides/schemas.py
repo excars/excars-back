@@ -34,14 +34,18 @@ class ProfileRedisSchema(marshmallow.Schema):
     name = fields.Str(required=True)
     avatar = fields.Str(required=True)
     plate = fields.Str(required=True)
-    role = fields.Str(required=True)
-    dest_name = fields.Str(attribute='destination.name', required=True)
-    dest_lat = fields.Float(attribute='destination.latitude', required=True)
-    dest_lon = fields.Float(attribute='destination.longitude', required=True)
+    role = fields.Str(required=False)
+    dest_name = fields.Str(attribute='destination.name', required=False)
+    dest_lat = fields.Float(attribute='destination.latitude', required=False)
+    dest_lon = fields.Float(attribute='destination.longitude', required=False)
 
     @marshmallow.post_load
     def make_profile(self, data):  # pylint: disable=no-self-use
         return entities.Profile(**data)
+
+    @marshmallow.post_dump
+    def clean_none(self, data):
+        return {k: v for k, v in data.items() if v is not None}
 
 
 class JoinPayload(marshmallow.Schema):
@@ -115,8 +119,8 @@ class MessageSchema(marshmallow.Schema):
 
 class UserLocationRedisSchema(marshmallow.Schema):
     user_uid = fields.Str(required=True, attribute='member')
-    latitude = fields.Float(required=True, attribute='coord.latitude')
-    longitude = fields.Float(required=True, attribute='coord.longitude')
+    latitude = fields.Decimal(required=True, attribute='coord.latitude', places=6)
+    longitude = fields.Decimal(required=True, attribute='coord.longitude', places=6)
     course = fields.Float(default=-1)
 
     @marshmallow.post_dump

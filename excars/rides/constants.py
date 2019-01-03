@@ -19,6 +19,9 @@ class MessageType:
     RIDE_DECLINED = 'RIDE_DECLINED'
     RIDE_CANCELLED = 'RIDE_CANCELLED'
 
+    SOCKET_CLOSE = '_WEBSOCKET_CLOSE'
+    SOCKET_OPEN = '_WEBSOCKET_OPEN'
+
 
 class RideRequestStatus:
     REQUESTED = 'requested'

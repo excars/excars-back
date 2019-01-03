@@ -12,6 +12,7 @@ from excars.db import database, get_models
 
 @pytest.fixture(scope='session')
 def db():
+    _drop_test_database()
     _create_test_database()
 
     connection_params = db_url.parse(app.application.config.DB_DSN)
@@ -54,7 +55,7 @@ def _create_test_database():
 
 
 def _drop_test_database():
-    _execute_sql('DROP DATABASE %s ;' % _get_test_database_name())
+    _execute_sql('DROP DATABASE IF EXISTS %s ;' % _get_test_database_name())
 
 
 def _execute_sql(query, values=None):

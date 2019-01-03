@@ -1,6 +1,7 @@
 import asyncio
 import typing
 
+from excars import settings
 from excars.ws import event
 
 from . import constants, entities, factories, repositories, schemas
@@ -8,14 +9,13 @@ from . import constants, entities, factories, repositories, schemas
 
 @event.publisher
 async def publish_map(request, ws, user):
-    frequency = 1
 
     location_repo = repositories.UserLocationRepository(request.app.redis)
     profile_repo = repositories.ProfileRepository(request.app.redis)
     ride_repo = repositories.RideRepository(request.app.redis)
 
     while True:
-        await asyncio.sleep(frequency)
+        await asyncio.sleep(settings.PUBLISH_MAP_FREQUENCY)
 
         locations = await location_repo.list(user_uid=user.uid)
         if not locations:

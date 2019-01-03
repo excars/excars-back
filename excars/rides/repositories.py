@@ -1,6 +1,7 @@
+import asyncio
 import typing
 
-from excars import redis as redis_utils
+from excars import redis as redis_utils, settings
 
 from . import constants, entities, schemas
 
@@ -10,20 +11,31 @@ class ProfileRepository:
     def __init__(self, redis_cli):
         self.redis_cli = redis_cli
 
+    @staticmethod
+    def _get_key(uid):
+        return  f'user:{uid}'
+
     async def save(self, profile: entities.Profile):
         await self.redis_cli.hmset_dict(
-            f'user:{profile.uid}',
+           self._get_key(profile.uid),
             **schemas.ProfileRedisSchema().dump(profile).data
         )
+        await self.redis_cli.persist(self._get_key(profile.uid))
 
     async def get(self, user_uid: str) -> typing.Optional[entities.Profile]:
-        payload = redis_utils.decode(await self.redis_cli.hgetall(f'user:{user_uid}'))
+        payload = redis_utils.decode(await self.redis_cli.hgetall(self._get_key(user_uid)))
 
         data, errors = schemas.ProfileRedisSchema().load(payload)
         if errors:
             return None
 
         return data
+
+    async def expire(self, user_uid):
+        await self.redis_cli.expire(
+            self._get_key(user_uid),
+            timeout=settings.PROFILE_TTL_ON_CLOSE,
+        )
 
 
 class RideRepository:
@@ -35,7 +47,7 @@ class RideRepository:
         await self.redis_cli.setex(
             f'ride:{ride_request.ride_uid}:request:{ride_request.passenger.uid}',
             value=ride_request.status,
-            seconds=30,
+            seconds=settings.RIDE_REQUEST_TTL,
         )
 
     async def update_request(self, ride_request: entities.RideRequest):
@@ -43,7 +55,11 @@ class RideRepository:
         await self.redis_cli.delete(f'{ride_key}:request:{ride_request.passenger.uid}')
 
         status = ride_request.status
-        await self.redis_cli.set(f'{ride_key}:passenger:{ride_request.passenger.uid}', status)
+        await self.redis_cli.set(
+            f'{ride_key}:passenger:{ride_request.passenger.uid}',
+            value=status,
+            expire=settings.RIDE_TTL,
+        )
 
     async def request_exists(self, ride_request: entities.RideRequest) -> bool:
         return bool(await self.redis_cli.exists(
@@ -115,17 +131,18 @@ class StreamRepository:
 
 class UserLocationRepository:
     KEY = 'user:locations'
+    REMOVE_KEY = 'user:locations:remove:{user_uid}'
     TTL = 60 * 30
 
     def __init__(self, redis_cli):
         self.redis_cli = redis_cli
 
-    async def save(self, user, location: entities.UserLocation):
+    async def save(self, user_uid: str, location: entities.UserLocation):
         await self.redis_cli.geoadd(
             self.KEY,
             latitude=location.latitude,
             longitude=location.longitude,
-            member=str(user.uid),
+            member=user_uid,
         )
 
     async def list(self, user_uid: str) -> typing.List[entities.UserLocation]:
@@ -143,3 +160,13 @@ class UserLocationRepository:
         )
 
         return schemas.UserLocationRedisSchema(many=True).dump(geomembers).data
+
+    async def unexpire(self, user_uid: str):
+        await self.redis_cli.delete(self.REMOVE_KEY.format(user_uid=user_uid))
+
+    async def expire(self, user_uid: str):
+        await self.redis_cli.set(self.REMOVE_KEY.format(user_uid=user_uid), 'true')
+        await asyncio.sleep(settings.LOCATION_TTL)
+        if await self.redis_cli.get(self.REMOVE_KEY.format(user_uid=user_uid)):
+            await self.redis_cli.zrem(self.KEY, user_uid)
+            await self.redis_cli.delete(self.REMOVE_KEY.format(user_uid=user_uid))
