@@ -87,7 +87,6 @@ async def create_ride(request, user):
         status=constants.RideRequestStatus.REQUESTED,
     )
     await repositories.RideRepository(redis_cli).create_request(ride_request)
-    await repositories.StreamRepository(redis_cli).ride_requested(ride_request)
 
     return sanic.response.json({
         'uid': ride_request.ride_uid
@@ -100,7 +99,6 @@ async def create_ride(request, user):
 async def update_ride(request, uid, user):
     profile_repo = repositories.ProfileRepository(request.app.redis)
     ride_repo = repositories.RideRepository(request.app.redis)
-    stream_repo = repositories.StreamRepository(request.app.redis)
 
     receiver = await profile_repo.get(user.uid)
     if not receiver:
@@ -122,7 +120,6 @@ async def update_ride(request, uid, user):
         raise sanic.exceptions.NotFound('Not Found')
 
     await ride_repo.update_request(ride_request)
-    await stream_repo.ride_updated(ride_request)
 
     return sanic.response.json({
         'uid': ride_request.ride_uid
@@ -143,3 +140,24 @@ async def current_ride(request, user):
     return sanic.response.json(
         schemas.RideSchema().dump(ride).data
     )
+
+
+@bp.route('/api/rides/leave', methods=['DELETE'])
+@sanic_jwt.inject_user()
+@sanic_jwt.protected()
+async def leave(request, user):
+    profile_repo = repositories.ProfileRepository(request.app.redis)
+    ride_repo = repositories.RideRepository(request.app.redis)
+
+    profile = await profile_repo.get(user.uid)
+    if not profile:
+        raise sanic.exceptions.NotFound('Not Found')
+
+    if profile.role == constants.Role.DRIVER:
+        await ride_repo.delete(ride_uid=profile.uid)
+    else:
+        await ride_repo.exclude(user_uid=profile.uid)
+
+    await profile_repo.delete(profile.uid)
+
+    return sanic.response.json({}, status=204)

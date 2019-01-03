@@ -39,7 +39,7 @@ async def test_ride_requested(test_cli, add_jwt, create_user, user_to_redis):
 
 @pytest.mark.require_db
 @pytest.mark.require_redis
-async def test_ride_updated(test_cli, add_jwt, create_user, user_to_redis):
+async def test_ride_request_updated(test_cli, add_jwt, create_user, user_to_redis):
     sender = create_user(username='georgy', first_name='George', last_name='Harrison')
     receiver = create_user(username='macca', first_name='Paul', last_name='McCartney')
 
@@ -57,7 +57,7 @@ async def test_ride_updated(test_cli, add_jwt, create_user, user_to_redis):
     await test_cli.app.redis.xadd(
         stream=f'stream:{sender.uid}',
         fields={
-            'type': 'RIDE_ACCEPTED',
+            'type': 'RIDE_REQUEST_ACCEPTED',
             'ride_uid': f'{sender.uid}',
             'sender_uid': f'{sender.uid}',
             'receiver_uid': f'{receiver.uid}',
