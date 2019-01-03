@@ -3,7 +3,7 @@ import uuid
 
 import pytest
 
-from excars.rides.tests.constants import DEFAULT_LONG, DEFAULT_LAT
+from excars.rides.tests.constants import DEFAULT_LAT, DEFAULT_LONG
 
 
 @pytest.mark.require_db

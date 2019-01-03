@@ -38,4 +38,3 @@ async def on_open(request, ws, payload, user):
         repositories.UserLocationRepository(redis_cli).unexpire(str(user.uid)),
         repositories.ProfileRepository(redis_cli).save(factories.make_profile(user))
     )
-

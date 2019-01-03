@@ -4,6 +4,7 @@ import pytest
 
 from . import constants
 
+
 @pytest.fixture
 def join_payload():
     def wrapper(role):

@@ -44,7 +44,7 @@ class ProfileRedisSchema(marshmallow.Schema):
         return entities.Profile(**data)
 
     @marshmallow.post_dump
-    def clean_none(self, data):
+    def clean_none(self, data):  # pylint: disable=no-self-use
         return {k: v for k, v in data.items() if v is not None}
 
 

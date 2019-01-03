@@ -1,6 +1,8 @@
 import pytest
 
 from . import constants
+
+
 @pytest.fixture
 def user_to_redis(test_cli):
     async def wrapper(user, role, ride_uid=None):

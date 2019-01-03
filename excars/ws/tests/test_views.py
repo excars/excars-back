@@ -1,8 +1,8 @@
 import asyncio
+import json
 
 import pytest
 
-import json
 from excars.ws import event, utils
 
 
@@ -158,7 +158,6 @@ async def test_stream_connect(test_cli, add_jwt, create_user, consumer_event):
     # test than profile created
     assert await test_cli.app.redis.hgetall(f'user:{uid}')
     assert await test_cli.app.redis.ttl(f'user:{uid}') == -1
-
 
 
 @pytest.mark.require_db

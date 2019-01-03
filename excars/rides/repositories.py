@@ -1,7 +1,8 @@
 import asyncio
 import typing
 
-from excars import redis as redis_utils, settings
+from excars import redis as redis_utils
+from excars import settings
 
 from . import constants, entities, schemas
 
@@ -13,12 +14,12 @@ class ProfileRepository:
 
     @staticmethod
     def _get_key(uid):
-        return  f'user:{uid}'
+        return f'user:{uid}'
 
     async def save(self, profile: entities.Profile):
         await self.redis_cli.hmset_dict(
-           self._get_key(profile.uid),
-            **schemas.ProfileRedisSchema().dump(profile).data
+            self._get_key(profile.uid),
+            **schemas.ProfileRedisSchema().dump(profile).data,
         )
         await self.redis_cli.persist(self._get_key(profile.uid))
 

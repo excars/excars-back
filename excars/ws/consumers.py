@@ -1,6 +1,7 @@
 import asyncio
 
-from excars import redis as redis_utils, settings
+from excars import redis as redis_utils
+from excars import settings
 
 from . import event, utils
 
