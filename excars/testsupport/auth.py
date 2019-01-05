@@ -1,3 +1,6 @@
+import random
+import string
+
 import pytest
 
 from excars.auth import models
@@ -5,13 +8,21 @@ from excars.auth import models
 
 @pytest.fixture
 def create_user():
-    return lambda **kwargs: models.User.create(
-        **{
-            'username': 'excars',
-            'email': 'excars@gmail.com',
-            **kwargs,
-        }
-    )
+    def _create_user(**kwargs):
+        if 'username' in kwargs:
+            name = kwargs['username']
+        else:
+            name = list(string.ascii_lowercase)
+            random.shuffle(name)
+            name = ''.join(name[:random.randint(5, len(name))]).capitalize()
+        return models.User.create(
+            **{
+                'username': name,
+                'email': f'{name}@gmail.com',
+                **kwargs,
+            }
+        )
+    return _create_user
 
 
 @pytest.fixture

@@ -22,11 +22,14 @@ async def receive_location(request, ws, payload, user):
 @event.listen(constants.MessageType.SOCKET_CLOSE)
 async def on_close(request, ws, payload, user):
     del ws, payload
-
     redis_cli = request.app.redis
+
+    profile_repo = repositories.ProfileRepository(redis_cli)
+    profile = await profile_repo.get(user.uid)
+
     await asyncio.gather(
-        repositories.UserLocationRepository(redis_cli).expire(str(user.uid)),
-        repositories.ProfileRepository(redis_cli).expire(str(user.uid)),
+        profile_repo.expire(str(user.uid)),
+        repositories.RideRepository(redis_cli).expire(str(user.uid), profile.role),
     )
 
 
@@ -35,6 +38,6 @@ async def on_open(request, ws, payload, user):
     del ws, payload
     redis_cli = request.app.redis
     await asyncio.gather(
-        repositories.UserLocationRepository(redis_cli).unexpire(str(user.uid)),
-        repositories.ProfileRepository(redis_cli).save(factories.make_profile(user))
+        repositories.ProfileRepository(redis_cli).unexpire(str(user.uid)),
+        repositories.RideRepository(redis_cli).unexpire(str(user.uid)),
     )

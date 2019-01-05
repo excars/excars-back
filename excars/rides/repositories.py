@@ -21,7 +21,6 @@ class ProfileRepository:
             self._get_key(profile.uid),
             **schemas.ProfileRedisSchema().dump(profile).data,
         )
-        await self.redis_cli.persist(self._get_key(profile.uid))
 
     async def get(self, user_uid: str) -> typing.Optional[entities.Profile]:
         payload = redis_utils.decode(await self.redis_cli.hgetall(self._get_key(user_uid)))
@@ -35,14 +34,19 @@ class ProfileRepository:
     async def delete(self, user_uid: str) -> None:
         await self.redis_cli.delete(self._get_key(user_uid))
 
-    async def expire(self, user_uid):
+    async def expire(self, user_uid: str):
         await self.redis_cli.expire(
             self._get_key(user_uid),
-            timeout=settings.PROFILE_TTL_ON_CLOSE,
+            timeout=settings.USER_DATA_TTL_ON_CLOSE,
         )
+
+    async def unexpire(self, user_uid: str):
+        await self.redis_cli.persist(self._get_key(user_uid))
 
 
 class RideRepository:
+
+    REMOVE_KEY = 'remove:ride:{user_uid}'
 
     def __init__(self, redis_cli):
         self.redis_cli = redis_cli
@@ -98,7 +102,7 @@ class RideRepository:
 
         await StreamRepository(self.redis_cli).ride_cancelled(ride)
 
-        keys = [key async for key in self.redis_cli.iscan(match=f'ride:{ride_uid}:passenger:*')]
+        keys = ['ride:{}:passenger:{}'.format(ride_uid, p.profile.uid) for p in ride.passengers]
         await asyncio.gather(*[self.redis_cli.delete(key) for key in keys])
 
     async def exclude(self, user_uid: str) -> None:
@@ -117,6 +121,19 @@ class RideRepository:
             return str(user_uid)
 
         return None
+
+    async def expire(self, user_uid: str, role: str):
+        await self.redis_cli.set(self.REMOVE_KEY.format(user_uid=user_uid), 'true')
+        await asyncio.sleep(settings.USER_DATA_TTL_ON_CLOSE)
+        if await self.redis_cli.get(self.REMOVE_KEY.format(user_uid=user_uid)):
+            if role == constants.Role.HITCHHIKER:
+                await self.exclude(user_uid)
+            elif role == constants.Role.DRIVER:
+                await self.delete(user_uid)
+            await self.redis_cli.delete(self.REMOVE_KEY.format(user_uid=user_uid))
+
+    async def unexpire(self, user_uid: str):
+        await self.redis_cli.delete(self.REMOVE_KEY.format(user_uid=user_uid))
 
 
 class StreamRepository:
@@ -184,8 +201,6 @@ class StreamRepository:
 
 class UserLocationRepository:
     KEY = 'user:locations'
-    REMOVE_KEY = 'user:locations:remove:{user_uid}'
-    TTL = 60 * 30
 
     def __init__(self, redis_cli):
         self.redis_cli = redis_cli
@@ -214,12 +229,5 @@ class UserLocationRepository:
 
         return schemas.UserLocationRedisSchema(many=True).dump(geomembers).data
 
-    async def unexpire(self, user_uid: str):
-        await self.redis_cli.delete(self.REMOVE_KEY.format(user_uid=user_uid))
-
-    async def expire(self, user_uid: str):
-        await self.redis_cli.set(self.REMOVE_KEY.format(user_uid=user_uid), 'true')
-        await asyncio.sleep(settings.LOCATION_TTL)
-        if await self.redis_cli.get(self.REMOVE_KEY.format(user_uid=user_uid)):
-            await self.redis_cli.zrem(self.KEY, user_uid)
-            await self.redis_cli.delete(self.REMOVE_KEY.format(user_uid=user_uid))
+    async def delete(self, user_uid: str):
+        await self.redis_cli.zrem(self.KEY, user_uid)

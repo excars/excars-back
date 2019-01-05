@@ -34,18 +34,14 @@ class ProfileRedisSchema(marshmallow.Schema):
     name = fields.Str(required=True)
     avatar = fields.Str(required=True)
     plate = fields.Str(required=True)
-    role = fields.Str(required=False)
-    dest_name = fields.Str(attribute='destination.name', required=False)
-    dest_lat = fields.Float(attribute='destination.latitude', required=False)
-    dest_lon = fields.Float(attribute='destination.longitude', required=False)
+    role = fields.Str(required=True)
+    dest_name = fields.Str(attribute='destination.name', required=True)
+    dest_lat = fields.Float(attribute='destination.latitude', required=True)
+    dest_lon = fields.Float(attribute='destination.longitude', required=True)
 
     @marshmallow.post_load
     def make_profile(self, data):  # pylint: disable=no-self-use
         return entities.Profile(**data)
-
-    @marshmallow.post_dump
-    def clean_none(self, data):  # pylint: disable=no-self-use
-        return {k: v for k, v in data.items() if v is not None}
 
 
 class JoinPayload(marshmallow.Schema):
