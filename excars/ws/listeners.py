@@ -1,5 +1,6 @@
 import asyncio
-import json
+
+import ujson as json
 
 from . import event
 
