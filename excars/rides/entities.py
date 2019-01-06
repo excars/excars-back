@@ -1,5 +1,6 @@
 import typing
 from dataclasses import dataclass
+from decimal import Decimal
 
 from . import constants
 
@@ -7,8 +8,8 @@ from . import constants
 @dataclass
 class Destination:
     name: str
-    latitude: float
-    longitude: float
+    latitude: Decimal
+    longitude: Decimal
 
 
 @dataclass
@@ -63,9 +64,9 @@ class Ride:
 @dataclass
 class UserLocation:
     user_uid: str
-    latitude: float
-    longitude: float
-    course: float
+    latitude: Decimal
+    longitude: Decimal
+    course: Decimal
     ts: float
 
 

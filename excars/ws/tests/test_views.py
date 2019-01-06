@@ -1,8 +1,8 @@
 import asyncio
+import json
 
 import pytest
 
-import ujson
 from excars.ws import event, utils
 
 
@@ -12,7 +12,7 @@ def listener_event():
     @event.listen('PING')
     async def handler(request, ws, message, user):
         del request, message, user
-        await ws.send(ujson.dumps({
+        await ws.send(json.dumps({
             'type': 'PONG',
             'connected': True,
         }))
@@ -30,7 +30,7 @@ def publisher_event():
     @event.publisher
     async def handler(request, ws, user):
         del request, user
-        await ws.send(ujson.dumps({
+        await ws.send(json.dumps({
             'type': 'PONG'
         }))
 
@@ -47,7 +47,7 @@ def consumer_event():
     @event.consume('XPING')
     async def handler(request, ws, message, user):
         del request, message, user
-        await ws.send(ujson.dumps({
+        await ws.send(json.dumps({
             'type': 'XPONG',
             'connected': True,
         }))
@@ -80,7 +80,7 @@ async def test_reconnect_to_stream(test_cli, add_jwt):
         with pytest.raises(asyncio.TimeoutError):
             await conn.receive_json(timeout=0.1)
 
-        conn.close()
+        await conn.close()
 
 
 @pytest.mark.require_db
@@ -128,12 +128,7 @@ async def test_stream_consumer(test_cli, add_jwt, create_user, consumer_event):
     url = await add_jwt('/stream', user_uid=user.uid)
     stream = utils.get_user_stream(str(user.uid))
     conn = await test_cli.ws_connect(url)
-
-    # This is some kind of a hack: ws_connect seems to be lazy, so we open connection like this
-    try:
-        await conn.receive_json(timeout=0.1)
-    except asyncio.TimeoutError:
-        pass
+    await asyncio.sleep(0.1)
 
     await test_cli.app.redis.xadd(
         stream=stream,

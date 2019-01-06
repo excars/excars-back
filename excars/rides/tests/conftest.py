@@ -1,5 +1,7 @@
 import pytest
 
+from . import constants
+
 
 @pytest.fixture
 def user_to_redis(test_cli):
@@ -12,20 +14,20 @@ def user_to_redis(test_cli):
             plate=user.plate,
             role=role,
             dest_name='Porto Bello',
-            dest_lat=34.6709681,
-            dest_lon=33.0396582,
+            dest_lat=constants.DEFAULT_LAT,
+            dest_lon=constants.DEFAULT_LONG,
         )
         await test_cli.app.redis.geoadd(
             'user:locations',
             member=str(user.uid),
-            latitude=34.67096919407988,
-            longitude=33.039657175540924,
+            latitude=constants.DEFAULT_LAT,
+            longitude=constants.DEFAULT_LONG,
         )
         await test_cli.app.redis.hmset_dict(
             f'user:{user.uid}:location',
             user_uid=str(user.uid),
-            latitude=34.67096919407988,
-            longitude=33.039657175540924,
+            latitude=constants.DEFAULT_LAT,
+            longitude=constants.DEFAULT_LONG,
             course=1,
             ts=1546784075.0,
         )

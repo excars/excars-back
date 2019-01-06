@@ -4,6 +4,8 @@ import uuid
 
 import pytest
 
+from . import constants
+
 
 @pytest.mark.require_db
 @pytest.mark.require_redis
@@ -17,7 +19,7 @@ async def test_publish_map_with_same_ride(test_cli, create_user, add_jwt, user_t
     url = await add_jwt('/stream', user_uid=driver.uid)
     conn = await test_cli.ws_connect(url)
 
-    locations = await conn.receive_json(timeout=1.5)
+    locations = await conn.receive_json(timeout=0.3)
 
     assert locations['data'] == [
         {
@@ -25,8 +27,8 @@ async def test_publish_map_with_same_ride(test_cli, create_user, add_jwt, user_t
             'role': 'hitchhiker',
             'location': {
                 'user_uid': str(passenger.uid),
-                'latitude':  34.67096919407988,
-                'longitude': 33.039657175540924,
+                'latitude':  constants.DEFAULT_LAT,
+                'longitude': constants.DEFAULT_LONG,
                 'course': 1.0,
                 'ts': 1546784075.0,
             },
@@ -48,7 +50,7 @@ async def test_publish_map_different_ride(test_cli, create_user, add_jwt, user_t
     conn = await test_cli.ws_connect(url)
 
     with pytest.raises(asyncio.TimeoutError):
-        await conn.receive_json(timeout=1.1)
+        await conn.receive_json(timeout=0.3)
 
 
 @pytest.mark.require_db
@@ -63,7 +65,7 @@ async def test_publish_map_no_ride(test_cli, create_user, add_jwt, user_to_redis
     url = await add_jwt('/stream', user_uid=driver.uid)
     conn = await test_cli.ws_connect(url)
 
-    locations = await conn.receive_json(timeout=1.1)
+    locations = await conn.receive_json(timeout=0.3)
 
     assert locations['data'] == [
         {
@@ -71,8 +73,8 @@ async def test_publish_map_no_ride(test_cli, create_user, add_jwt, user_to_redis
             'role': 'hitchhiker',
             'location': {
                 'user_uid': str(hitchhiker.uid),
-                'latitude': 34.67096919407988,
-                'longitude': 33.039657175540924,
+                'latitude': constants.DEFAULT_LAT,
+                'longitude': constants.DEFAULT_LONG,
                 'course': 1.0,
                 'ts': 1546784075.0,
             },
@@ -90,14 +92,14 @@ async def test_publish_map_no_profile(test_cli, create_user, add_jwt, user_to_re
     await test_cli.app.redis.geoadd(
         'user:locations',
         member=str(user.uid),
-        latitude=34.67096919407988,
-        longitude=33.039657175540924,
+        latitude=constants.DEFAULT_LAT,
+        longitude=constants.DEFAULT_LONG,
     )
     await test_cli.app.redis.hmset_dict(
         f'user:{user.uid}:location',
         user_uid=str(user.uid),
-        latitude=34.67096919407988,
-        longitude=33.039657175540924,
+        latitude=constants.DEFAULT_LAT,
+        longitude=constants.DEFAULT_LONG,
         course=-1,
         ts=time.time(),
     )
@@ -106,7 +108,7 @@ async def test_publish_map_no_profile(test_cli, create_user, add_jwt, user_to_re
     url = await add_jwt('/stream', user_uid=user.uid)
     conn = await test_cli.ws_connect(url)
 
-    locations = await conn.receive_json(timeout=1.1)
+    locations = await conn.receive_json(timeout=0.3)
 
     assert locations['data'] == [
         {
@@ -114,8 +116,8 @@ async def test_publish_map_no_profile(test_cli, create_user, add_jwt, user_to_re
             'role': 'hitchhiker',
             'location': {
                 'user_uid': str(hitchhiker.uid),
-                'latitude': 34.67096919407988,
-                'longitude': 33.039657175540924,
+                'latitude': constants.DEFAULT_LAT,
+                'longitude': constants.DEFAULT_LONG,
                 'course': 1.0,
                 'ts': 1546784075.0,
             },

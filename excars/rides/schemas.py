@@ -116,9 +116,9 @@ class MessageSchema(marshmallow.Schema):
 
 class UserLocationRedisSchema(marshmallow.Schema):
     user_uid = fields.Str(required=True)
-    latitude = fields.Float(required=True)
-    longitude = fields.Float(required=True)
-    course = fields.Float(required=True)
+    latitude = fields.Decimal(required=True, places=6)
+    longitude = fields.Decimal(required=True, places=6)
+    course = fields.Decimal(required=True, places=6)
     ts = fields.Float(required=True)
 
     @marshmallow.post_load
