@@ -97,7 +97,7 @@ class RideRepository:
         async for key in self.redis_cli.iscan(match=f'ride:*:passenger:{user_uid}'):
             return key.decode().split(':')[1]
 
-        async for _ in self.redis_cli.iscan(match=f'ride:*{user_uid}*'):  # noqa
+        async for _ in self.redis_cli.iscan(match=f'ride:{user_uid}:passenger:*'):  # noqa
             return str(user_uid)
 
         return None
@@ -173,12 +173,20 @@ class UserLocationRepository:
     def __init__(self, redis_cli):
         self.redis_cli = redis_cli
 
-    async def save(self, user, location: entities.UserLocation):
+    async def save(self, user_uid, location: entities.UserLocation):
         await self.redis_cli.geoadd(
             self.KEY,
             latitude=location.latitude,
             longitude=location.longitude,
-            member=str(user.uid),
+            member=str(user_uid),
+        )
+        await self.redis_cli.hmset_dict(
+            f'user:{user_uid}:location',
+            user_uid=str(user_uid),
+            latitude=location.latitude,
+            longitude=location.longitude,
+            course=location.course,
+            ts=location.ts,
         )
 
     async def list(self, user_uid: str) -> typing.List[entities.UserLocation]:
@@ -192,7 +200,15 @@ class UserLocationRepository:
             member=user_uid,
             radius=50,
             unit='km',
-            with_coord=True,
         )
 
-        return schemas.UserLocationRedisSchema(many=True).dump(geomembers).data
+        locations = await asyncio.gather(*[
+            self.redis_cli.hgetall(f'user:{geomember.decode()}:location')
+            for geomember in geomembers
+        ])
+        locations = [redis_utils.decode(location) for location in locations]
+
+        schema = schemas.UserLocationRedisSchema(many=True).load(locations)
+        if schema.errors:
+            raise Exception(schema.errors)
+        return schema.data

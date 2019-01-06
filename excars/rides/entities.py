@@ -66,6 +66,7 @@ class UserLocation:
     latitude: float
     longitude: float
     course: float
+    ts: float
 
 
 @dataclass

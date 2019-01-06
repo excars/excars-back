@@ -1,4 +1,5 @@
 import asyncio
+import time
 import uuid
 
 import pytest
@@ -26,7 +27,8 @@ async def test_publish_map_with_same_ride(test_cli, create_user, add_jwt, user_t
                 'user_uid': str(passenger.uid),
                 'latitude':  34.67096919407988,
                 'longitude': 33.039657175540924,
-                'course': -1.0,
+                'course': 1.0,
+                'ts': 1546784075.0,
             },
             'has_same_ride': True,
         },
@@ -71,7 +73,8 @@ async def test_publish_map_no_ride(test_cli, create_user, add_jwt, user_to_redis
                 'user_uid': str(hitchhiker.uid),
                 'latitude': 34.67096919407988,
                 'longitude': 33.039657175540924,
-                'course': -1.0,
+                'course': 1.0,
+                'ts': 1546784075.0,
             },
             'has_same_ride': False,
         },
@@ -90,6 +93,14 @@ async def test_publish_map_no_profile(test_cli, create_user, add_jwt, user_to_re
         latitude=34.67096919407988,
         longitude=33.039657175540924,
     )
+    await test_cli.app.redis.hmset_dict(
+        f'user:{user.uid}:location',
+        user_uid=str(user.uid),
+        latitude=34.67096919407988,
+        longitude=33.039657175540924,
+        course=-1,
+        ts=time.time(),
+    )
     await user_to_redis(hitchhiker, role='hitchhiker', ride_uid=None)
 
     url = await add_jwt('/stream', user_uid=user.uid)
@@ -105,7 +116,8 @@ async def test_publish_map_no_profile(test_cli, create_user, add_jwt, user_to_re
                 'user_uid': str(hitchhiker.uid),
                 'latitude': 34.67096919407988,
                 'longitude': 33.039657175540924,
-                'course': -1.0,
+                'course': 1.0,
+                'ts': 1546784075.0,
             },
             'has_same_ride': False,
         },

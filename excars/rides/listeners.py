@@ -14,4 +14,4 @@ async def receive_location(request, ws, payload, user):
     location = factories.make_user_location(user, **data)
 
     redis_cli = request.app.redis
-    await repositories.UserLocationRepository(redis_cli).save(user, location)
+    await repositories.UserLocationRepository(redis_cli).save(user.uid, location)

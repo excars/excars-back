@@ -1,3 +1,4 @@
+import time
 import typing
 
 from excars.auth import models as auth_models
@@ -40,6 +41,7 @@ def make_user_location(
         latitude=latitude,
         longitude=longitude,
         course=course,
+        ts=time.time(),
     )
 
 

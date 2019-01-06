@@ -21,6 +21,14 @@ def user_to_redis(test_cli):
             latitude=34.67096919407988,
             longitude=33.039657175540924,
         )
+        await test_cli.app.redis.hmset_dict(
+            f'user:{user.uid}:location',
+            user_uid=str(user.uid),
+            latitude=34.67096919407988,
+            longitude=33.039657175540924,
+            course=1,
+            ts=1546784075.0,
+        )
         if ride_uid and ride_uid != str(user.uid):
             await test_cli.app.redis.set(f'ride:{ride_uid}:passenger:{user.uid}', 'accepted')
 
