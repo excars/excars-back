@@ -1,8 +1,9 @@
 import asyncio
 
 from excars import redis as redis_utils
+from excars import settings
 
-from .. import event, utils
+from . import event, utils
 
 
 async def init(request, ws, user):
@@ -27,7 +28,7 @@ async def init(request, ws, user):
         )
 
     while True:
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(settings.READ_STREAM_FREQUENCY)
         messages = await redis.xread_group(
             group_name=user_uid,
             consumer_name=user_uid,

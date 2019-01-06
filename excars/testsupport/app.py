@@ -21,5 +21,8 @@ def app():
 
 
 @pytest.fixture
-def test_cli(loop, app, test_client):
+def test_cli(loop, app, test_client, mocker):
+    mocker.patch('excars.settings.PUBLISH_MAP_FREQUENCY', 0.1)
+    mocker.patch('excars.settings.READ_STREAM_FREQUENCY', 0.1)
+    mocker.patch('excars.settings.USER_DATA_TTL_ON_CLOSE', 0.1)
     return loop.run_until_complete(test_client(app, protocol=websocket.WebSocketProtocol))

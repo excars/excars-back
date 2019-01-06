@@ -5,7 +5,6 @@ name = "pypi"
 
 [packages]
 peewee = "*"
-sanic = "*"
 "psycopg2-binary" = "*"
 aioredis = "*"
 social-auth-core = "*"
@@ -14,6 +13,8 @@ sanic-cors = "*"
 social-auth-app-flask-peewee = "*"
 social-storage-peewee = {git = "https://github.com/unmade/social-storage-peewee.git"}
 marshmallow = "*"
+sanic = "*"
+cython = "*"
 
 [dev-packages]
 isort = "*"
