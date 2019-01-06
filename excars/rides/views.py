@@ -153,11 +153,7 @@ async def leave(request, user):
     if not profile:
         raise sanic.exceptions.NotFound('Not Found')
 
-    if profile.role == constants.Role.DRIVER:
-        await ride_repo.delete(ride_uid=profile.uid)
-    else:
-        await ride_repo.exclude(user_uid=profile.uid)
-
+    await ride_repo.delete_or_exclude(profile)
     await profile_repo.delete(profile.uid)
 
     return sanic.response.json({}, status=204)

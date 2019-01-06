@@ -1,9 +1,10 @@
 import asyncio
+import time
 import uuid
 
 import pytest
 
-from excars.rides.tests.constants import DEFAULT_LAT, DEFAULT_LONG
+from . import constants
 
 
 @pytest.mark.require_db
@@ -26,9 +27,10 @@ async def test_publish_map_with_same_ride(test_cli, create_user, add_jwt, user_t
             'role': 'hitchhiker',
             'location': {
                 'user_uid': str(passenger.uid),
-                'latitude':  DEFAULT_LAT,
-                'longitude': DEFAULT_LONG,
-                'course': -1.0,
+                'latitude':  constants.DEFAULT_LAT,
+                'longitude': constants.DEFAULT_LONG,
+                'course': 1.0,
+                'ts': 1546784075.0,
             },
             'has_same_ride': True,
         },
@@ -71,9 +73,10 @@ async def test_publish_map_no_ride(test_cli, create_user, add_jwt, user_to_redis
             'role': 'hitchhiker',
             'location': {
                 'user_uid': str(hitchhiker.uid),
-                'latitude': DEFAULT_LAT,
-                'longitude': DEFAULT_LONG,
-                'course': -1.0,
+                'latitude': constants.DEFAULT_LAT,
+                'longitude': constants.DEFAULT_LONG,
+                'course': 1.0,
+                'ts': 1546784075.0,
             },
             'has_same_ride': False,
         },
@@ -89,8 +92,16 @@ async def test_publish_map_no_profile(test_cli, create_user, add_jwt, user_to_re
     await test_cli.app.redis.geoadd(
         'user:locations',
         member=str(user.uid),
-        latitude=DEFAULT_LAT,
-        longitude=DEFAULT_LONG,
+        latitude=constants.DEFAULT_LAT,
+        longitude=constants.DEFAULT_LONG,
+    )
+    await test_cli.app.redis.hmset_dict(
+        f'user:{user.uid}:location',
+        user_uid=str(user.uid),
+        latitude=constants.DEFAULT_LAT,
+        longitude=constants.DEFAULT_LONG,
+        course=-1,
+        ts=time.time(),
     )
     await user_to_redis(hitchhiker, role='hitchhiker', ride_uid=None)
 
@@ -105,9 +116,10 @@ async def test_publish_map_no_profile(test_cli, create_user, add_jwt, user_to_re
             'role': 'hitchhiker',
             'location': {
                 'user_uid': str(hitchhiker.uid),
-                'latitude': DEFAULT_LAT,
-                'longitude': DEFAULT_LONG,
-                'course': -1.0,
+                'latitude': constants.DEFAULT_LAT,
+                'longitude': constants.DEFAULT_LONG,
+                'course': 1.0,
+                'ts': 1546784075.0,
             },
             'has_same_ride': False,
         },

@@ -67,6 +67,7 @@ class UserLocation:
     latitude: Decimal
     longitude: Decimal
     course: Decimal
+    ts: float
 
 
 @dataclass

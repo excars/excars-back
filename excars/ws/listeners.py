@@ -1,13 +1,14 @@
 import asyncio
 
 import ujson as json
+from excars.rides import constants
 
 from . import event
 
 
 async def init(request, ws, user):
-    handler = event.get_listener('_WEBSOCKET_OPEN')
-    asyncio.ensure_future(handler(request, ws, {}, user))
+    handler = event.get_listener(constants.MessageType.SOCKET_OPEN)
+    asyncio.create_task(handler(request, ws, {}, user))
     try:
         while True:
             try:
@@ -16,7 +17,7 @@ async def init(request, ws, user):
                 continue
             handler = event.get_listener(message['type'])
             if handler:
-                asyncio.ensure_future(handler(request, ws, message['data'], user))
+                asyncio.create_task(handler(request, ws, message['data'], user))
     finally:
-        handler = event.get_listener('_WEBSOCKET_CLOSE')
-        asyncio.ensure_future(handler(request, ws, {}, user))
+        handler = event.get_listener(constants.MessageType.SOCKET_CLOSE)
+        asyncio.create_task(handler(request, ws, {}, user))
