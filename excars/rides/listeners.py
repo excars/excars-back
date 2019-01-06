@@ -27,10 +27,11 @@ async def on_close(request, ws, payload, user):
     profile_repo = repositories.ProfileRepository(redis_cli)
     profile = await profile_repo.get(user.uid)
 
-    await asyncio.gather(
-        profile_repo.expire(user.uid),
-        repositories.RideRepository(redis_cli).expire(user.uid, profile.role),
-    )
+    coros = [profile_repo.expire(user.uid)]
+    if profile:
+        coros.append(repositories.RideRepository(redis_cli).expire(profile))
+
+    await asyncio.gather(*coros)
 
 
 @event.listen(constants.MessageType.SOCKET_OPEN)
@@ -38,6 +39,6 @@ async def on_open(request, ws, payload, user):
     del ws, payload
     redis_cli = request.app.redis
     await asyncio.gather(
-        repositories.ProfileRepository(redis_cli).unexpire(user.uid),
-        repositories.RideRepository(redis_cli).unexpire(user.uid),
+        repositories.ProfileRepository(redis_cli).persist(user.uid),
+        repositories.RideRepository(redis_cli).persist(user.uid),
     )
