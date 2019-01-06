@@ -28,7 +28,6 @@ async def require_redis(test_cli, redis):
 
     yield
 
-    await test_cli.app.redis.flushdb()
     del test_cli.app.redis
 
 

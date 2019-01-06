@@ -43,9 +43,7 @@ def get_consumers(message_type: str):
 
 def discover():
     pkgs = [
-        'excars.ws.listeners',
-        'excars.ws.publishers',
-        'excars.ws.consumers',
+        'excars.rides',
     ]
 
     for pkg in pkgs:

@@ -1,6 +1,9 @@
 import asyncio
 
-from .. import event, utils
+from excars import redis as redis_utils
+from excars import settings
+
+from . import event, utils
 
 
 async def init(request, ws, user):
@@ -25,7 +28,7 @@ async def init(request, ws, user):
         )
 
     while True:
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(settings.READ_STREAM_FREQUENCY)
         messages = await redis.xread_group(
             group_name=user_uid,
             consumer_name=user_uid,
@@ -34,7 +37,7 @@ async def init(request, ws, user):
             timeout=1,
         )
         for message in messages:
-            message = message[2]
-            handler = event.get_consumers(message.pop(b'type', b'').decode())
+            message = redis_utils.decode(message[2])
+            handler = event.get_consumers(message.get('type', ''))
             if handler:
                 await handler(request, ws, message, user)

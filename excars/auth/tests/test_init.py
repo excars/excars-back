@@ -15,4 +15,5 @@ def test_init():
         authenticate=views.authenticate,
         retrieve_user=views.retrieve_user,
         query_string_set=True,
+        query_string_strict=False,
     )

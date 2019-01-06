@@ -1,5 +1,5 @@
 # pylint: disable=redefined-outer-name
-
+import uuid
 from unittest import mock
 
 import pytest
@@ -86,7 +86,7 @@ async def test_authenticate_failure_due_to_oauth(request_mock):
 @pytest.mark.require_db
 async def test_retrieve_user_returns_user(request_mock, create_user):
     user = create_user()
-    payload = {'user_id': user.id}
+    payload = {'user_id': str(user.uid)}
 
     response = await views.retrieve_user(request_mock, payload)
 
@@ -98,7 +98,7 @@ async def test_retrieve_user_returns_user(request_mock, create_user):
     None,
     {},
     {'code': 1},
-    {'user_id': 1},
+    {'user_id': uuid.uuid4()},
 ])
 async def test_retrieve_user_returns_none(request_mock, payload):
     response = await views.retrieve_user(request_mock, payload)

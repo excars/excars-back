@@ -1,4 +1,4 @@
-from .. import event
+from . import event
 
 
 def init(request, ws, user):
