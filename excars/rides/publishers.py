@@ -21,7 +21,7 @@ async def publish_map(request, ws, user):
         if not locations:
             continue
 
-        map_items = await _prepare_map(user.uid, locations, profile_repo, ride_repo, location_repo)
+        map_items = await _prepare_map(user.uid, locations, profile_repo, ride_repo)
         if not map_items:
             continue
 
@@ -38,7 +38,6 @@ async def _prepare_map(
         locations: typing.List[entities.UserLocation],
         profile_repo: repositories.ProfileRepository,
         ride_repo: repositories.RideRepository,
-        location_repo: repositories.UserLocationRepository,
 ):
     user_ride_uid = await ride_repo.get_ride_uid(user_uid)
 
@@ -49,7 +48,6 @@ async def _prepare_map(
 
         profile = await profile_repo.get(location.user_uid)
         if not profile:
-            asyncio.ensure_future(location_repo.delete(location.user_uid))
             continue
 
         ride_uid = await ride_repo.get_ride_uid(profile.uid)
