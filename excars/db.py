@@ -4,7 +4,7 @@ from social_flask_peewee import models as social_models
 
 from .settings import db as db_settings
 
-database = db_url.connect(db_settings.DB_DSN, database=None)
+database = db_url.connect(db_settings.DATABASE_URL, database=None)
 
 
 async def setup(app, _):
@@ -14,7 +14,7 @@ async def setup(app, _):
 
 
 def _init_db(app, db):
-    connection_params = db_url.parse(app.config.DB_DSN)
+    connection_params = db_url.parse(app.config.DATABASE_URL)
     return db.init(connection_params['database'])
 
 

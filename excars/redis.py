@@ -5,7 +5,7 @@ import aioredis
 
 async def setup(app, _):
     app.redis = await aioredis.create_redis_pool(
-        app.config.REDIS_HOST,
+        app.config.REDIS_URL,
         db=app.config.REDIS_DB,
         minsize=app.config.REDIS_POOL_MIN,
         maxsize=app.config.REDIS_POOL_MAX,

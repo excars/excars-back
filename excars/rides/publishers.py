@@ -38,7 +38,7 @@ async def _prepare_map(
         locations: typing.List[entities.UserLocation],
         profile_repo: repositories.ProfileRepository,
         ride_repo: repositories.RideRepository,
-):
+) -> typing.List[entities.MapItem]:
     user_ride_uid = await ride_repo.get_ride_uid(user_uid)
 
     map_items = []
