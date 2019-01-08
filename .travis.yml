@@ -5,23 +5,31 @@ python:
 sudo: required
 dist: trusty
 
+
 services:
   - docker
+  - postgresql
+  - redis-server
 
+addons:
+  postgresql: "10"
+  apt:
+    packages:
+      - postgresql-10
+      - postgresql-client-10
 
-before_install:
-  - touch secrets.env
-  - docker-compose build
 
 install:
   - pip install codecov
   - pip install coverage
 
-script:
-  - docker-compose run app make ci
 
-after_script:
-  - docker-compose down
+before_script:
+  - psql -c 'create database excars;' -U postgres
+
+script:
+  - docker build . -t excars/excars-back
+  - docker run --rm -e "DATABASE_URL=postgresext://postgres@localhost:5432/excars" -e "REDIS_URL=redis://localhost" excars/excars-back make ci
 
 
 after_success:
