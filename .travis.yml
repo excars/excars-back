@@ -18,21 +18,41 @@ addons:
       - postgresql-10
       - postgresql-client-10
 
+env:
+  global:
+    - PGPORT=5433
+    - PGDATABASE=excars
+    - PGUSER=postgres
+    - PGHOST=localhost
+
 
 install:
   - pip install codecov
   - pip install coverage
 
 
-before_script:
-  - psql -c 'create database excars;' -U postgres
-
 script:
   - docker build . -t excars/excars-back
-  - docker run --rm -e "DATABASE_URL=postgresext://postgres@localhost:5432/excars" -e "REDIS_URL=redis://localhost" excars/excars-back make ci
+  - docker run --rm -e "DATABASE_URL=postgresext://postgres@localhost:5433/excars" -e "REDIS_URL=redis://localhost" excars/excars-back make ci
+  - docker tag excars/excars-back registry.heroku.com/${HEROKU_APP_NAME}/web
 
 
 after_success:
   - mv .coverage .coverage.travis
   - coverage combine --append
   - codecov
+
+
+before_deploy:
+  wget -qO- https://toolbelt.heroku.com/install.sh | sh;
+  echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin;
+  echo "${HEROKU_PASSWORD}" | docker login -u "${HEROKU_USERNAME}" --password-stdin registry.heroku.com
+
+deploy:
+  provider: script
+  script:
+    docker push excars/excars-back;
+    docker push registry.heroku.com/${HEROKU_APP_NAME}/web;
+    heroku container:release web --app ${HEROKU_APP_NAME}
+  on:
+    branch: master
