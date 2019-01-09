@@ -63,7 +63,7 @@ def _execute_sql(query, values=None):
 
     conn = psycopg2.connect(
         user=conn_params['user'],
-        password=conn_params['password'],
+        password=conn_params.get('password'),
         host=conn_params['host'],
         port=conn_params['port'],
         dbname=conn_params['database'],
