@@ -42,5 +42,5 @@ deploy:
     docker push excars/excars-back;
     docker push registry.heroku.com/${HEROKU_APP_NAME}/web;
     heroku container:release web --app ${HEROKU_APP_NAME}
-  on:
-    branch: master
+  on:	
+    all_branches: true
