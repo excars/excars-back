@@ -5,7 +5,7 @@ python:
 sudo: required
 dist: trusty
 
-cache:pip
+cache: pip
 
 services:
   - docker
@@ -33,7 +33,7 @@ after_success:
 before_deploy:
   wget -qO- https://toolbelt.heroku.com/install.sh | sh;
   echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin;
-  echo "${HEROKU_PASSWORD}" | docker login -u "${HEROKU_USERNAME}" --password-stdin registry.heroku.com
+  echo "${HEROKU_PASSWORD}" | docker login -u "${HEROKU_USERNAME}" --password-stdin registry.heroku.com;
   docker tag excars/excars-back registry.heroku.com/${HEROKU_APP_NAME}/web
 
 deploy:
