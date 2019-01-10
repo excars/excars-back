@@ -9,7 +9,7 @@ from excars.settings import redis as redis_settings
 @pytest.fixture(scope='session')
 async def redis():
     redis_cli = await aioredis.create_redis_pool(
-        redis_settings.REDIS_URL,
+        redis_settings.REDIS_HOST,
         db=15,
         minsize=redis_settings.REDIS_POOL_MIN,
         maxsize=redis_settings.REDIS_POOL_MAX,
