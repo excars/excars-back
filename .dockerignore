@@ -7,7 +7,5 @@ __pycache__
 .cache
 .pytest_cache
 
-.coverage
-
 secrets.env
 docker-compose.yml
