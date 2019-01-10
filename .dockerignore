@@ -1,0 +1,13 @@
+.DS_Store
+
+.git
+.idea
+
+__pycache__
+.cache
+.pytest_cache
+
+.coverage
+
+secrets.env
+docker-compose.yml

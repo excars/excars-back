@@ -5,25 +5,42 @@ python:
 sudo: required
 dist: trusty
 
+cache: pip
+
 services:
   - docker
 
-before_install:
-  - touch secrets.env
-  - docker-compose build
 
 install:
   - pip install codecov
   - pip install coverage
 
+
+before_script:
+  - docker run -d --name redis redis:5.0.3-alpine
+  - docker run -d --name postgres -e "POSTGRES_USER=excars" -e "POSTGRES_PASSWORD=excars" -e "POSTGRES_DB=excars" postgres:10.6-alpine
+
 script:
-  - docker-compose run app make ci
-
-after_script:
-  - docker-compose down
-
+  - docker build . -t excars/excars-back
+  - docker run --rm --link redis:redis --link postgres:db excars/excars-back make ci
 
 after_success:
   - mv .coverage .coverage.travis
   - coverage combine --append
   - codecov
+
+
+before_deploy:
+  wget -qO- https://toolbelt.heroku.com/install.sh | sh;
+  echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin;
+  echo "${HEROKU_PASSWORD}" | docker login -u "${HEROKU_USERNAME}" --password-stdin registry.heroku.com;
+  docker tag excars/excars-back registry.heroku.com/${HEROKU_APP_NAME}/web
+
+deploy:
+  provider: script
+  script:
+    docker push excars/excars-back;
+    docker push registry.heroku.com/${HEROKU_APP_NAME}/web;
+    heroku container:release web --app ${HEROKU_APP_NAME}
+  on:	
+    branch: master

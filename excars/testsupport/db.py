@@ -15,7 +15,7 @@ def db():
     _drop_test_database()
     _create_test_database()
 
-    connection_params = db_url.parse(app.application.config.DB_DSN)
+    connection_params = db_url.parse(app.application.config.DB_URL)
     connection_params['database'] = _get_test_database_name()
 
     test_db = database.__class__(**connection_params)
@@ -59,11 +59,11 @@ def _drop_test_database():
 
 
 def _execute_sql(query, values=None):
-    conn_params = db_url.parse(app.application.config.DB_DSN)
+    conn_params = db_url.parse(app.application.config.DB_URL)
 
     conn = psycopg2.connect(
         user=conn_params['user'],
-        password=conn_params['password'],
+        password=conn_params.get('password'),
         host=conn_params['host'],
         port=conn_params['port'],
         dbname=conn_params['database'],
@@ -79,5 +79,5 @@ def _execute_sql(query, values=None):
 
 
 def _get_test_database_name():
-    connection_params = db_url.parse(app.application.config.DB_DSN)
+    connection_params = db_url.parse(app.application.config.DB_URL)
     return f'{connection_params["database"]}_test'
