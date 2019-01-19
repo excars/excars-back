@@ -22,7 +22,7 @@ before_script:
 
 script:
   - docker build . -t excars/excars-back
-  - docker run --rm --link redis:redis --link postgres:db excars/excars-back make ci
+  - docker run --link redis:redis --link postgres:db --volume $(pwd):/excars-back excars/excars-back make ci
 
 after_success:
   - mv .coverage .coverage.travis
