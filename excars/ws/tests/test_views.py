@@ -65,8 +65,7 @@ async def test_stream_smoke(test_cli, add_jwt):
     url = await add_jwt('/stream')
     conn = await test_cli.ws_connect(url)
 
-    with pytest.raises(asyncio.TimeoutError):
-        await conn.receive_json(timeout=0.2)
+    assert await conn.receive_json(timeout=0.2)
 
 
 @pytest.mark.require_db
