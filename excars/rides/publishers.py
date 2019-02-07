@@ -18,12 +18,7 @@ async def publish_map(request, ws, user):
         await asyncio.sleep(settings.PUBLISH_MAP_FREQUENCY)
 
         locations = await location_repo.list(user_uid=user.uid)
-        if not locations:
-            continue
-
         map_items = await _prepare_map(user.uid, locations, profile_repo, ride_repo)
-        if not map_items:
-            continue
 
         message = factories.make_message(
             constants.MessageType.MAP,

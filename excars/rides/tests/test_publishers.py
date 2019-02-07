@@ -1,4 +1,3 @@
-import asyncio
 import time
 import uuid
 
@@ -49,8 +48,7 @@ async def test_publish_map_different_ride(test_cli, create_user, add_jwt, user_t
     url = await add_jwt('/stream', user_uid=driver.uid)
     conn = await test_cli.ws_connect(url)
 
-    with pytest.raises(asyncio.TimeoutError):
-        await conn.receive_json(timeout=0.3)
+    assert await conn.receive_json(timeout=0.3) == {'data': [], 'type': 'MAP'}
 
 
 @pytest.mark.require_db
