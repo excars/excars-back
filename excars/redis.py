@@ -1,5 +1,3 @@
-import uuid
-
 import aioredis
 
 
@@ -15,10 +13,6 @@ async def setup(app, _):
 async def stop(app, _):
     app.redis.close()
     await app.redis.wait_closed()
-
-
-def get_user_key(user_uid: uuid.uuid4) -> str:
-    return f'user:{user_uid}'
 
 
 def decode(data):
