@@ -12,4 +12,5 @@ def init(app):
         retrieve_user=views.retrieve_user,
         query_string_set=True,
         query_string_strict=False,
+        expiration_delta=app.config.JWT_EXPIRATION_DELTA,
     )

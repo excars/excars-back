@@ -23,3 +23,5 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',
 )
+
+JWT_EXPIRATION_DELTA = int(os.getenv('JWT_EXPIRATION_DELTA', str(2 * 60 * 60)))  # default: 2 hours
