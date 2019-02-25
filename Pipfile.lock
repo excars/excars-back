@@ -598,12 +598,10 @@
         },
         "isort": {
             "hashes": [
-                "sha256:1153601da39a25b14ddc54955dbbacbb6b2d19135386699e2ad58517953b34af",
-                "sha256:b9c40e9750f3d77e6e4d441d8b0266cf555e7cdabdcff33c4fd06366ca761ef8",
-                "sha256:ec9ef8f4a9bc6f71eec99e1806bfa2de401650d996c59330782b89a5555c1497"
+                "sha256:44b9054f8774a652563c01d5dca28340a4ca23f9e30b8ea99e28927ddee5876e",
+                "sha256:bbdb9c4d97dcabaa937511f1bf4d2b2bdbf0370053a4b587ad1adf19f83c1a5c"
             ],
-            "index": "pypi",
-            "version": "==4.3.4"
+            "version": "==4.3.7"
         },
         "lazy-object-proxy": {
             "hashes": [
