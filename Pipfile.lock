@@ -750,11 +750,10 @@
         },
         "pytest-sanic": {
             "hashes": [
-                "sha256:54cae23480e6e1eeef2b3b56c66367db5d3d5ae9784619da4598ec32b7d7fc69",
-                "sha256:71d6bbbe7cc0e8fdd7e69fe872a372490b417a4fbdeb7c00d63cee29cd9eb1a0"
+                "sha256:9b6608fc86453cee23bc989203fde54728a07b31efb2ac6f2cfa771ee114f134",
+                "sha256:a1da3c8445fb1bd1af92757796132c4eb97051b1b142cd93ece18a97aec18a6e"
             ],
-            "index": "pypi",
-            "version": "==0.1.15"
+            "version": "==1.0.0"
         },
         "six": {
             "hashes": [
