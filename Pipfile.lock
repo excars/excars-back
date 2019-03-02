@@ -498,10 +498,10 @@
         },
         "astroid": {
             "hashes": [
-                "sha256:35b032003d6a863f5dcd7ec11abd5cd5893428beaa31ab164982403bcb311f22",
-                "sha256:6a5d668d7dc69110de01cdf7aeec69a679ef486862a0850cc0fd5571505b6b7e"
+                "sha256:e02093b94fe512fd38228378b99468c9bacb4d51448952374a1acf9ffa4df3e2",
+                "sha256:f249c424976f0eb6d46ab4101176264ab3375839c81c8f068e3c173d22f2d460"
             ],
-            "version": "==2.1.0"
+            "version": "==2.2.1"
         },
         "async-generator": {
             "hashes": [
