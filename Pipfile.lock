@@ -258,10 +258,9 @@
         },
         "peewee": {
             "hashes": [
-                "sha256:7f8e3f512ee0d4e2d9c2008ea446d69e23c9535466367b991d452825a1ddb654"
+                "sha256:072b934cc6b832eaa9cf39ac98e9c9d454cabb3b234ff2f20698f8ad1b4278b1"
             ],
-            "index": "pypi",
-            "version": "==3.8.2"
+            "version": "==3.9.1"
         },
         "psycopg2-binary": {
             "hashes": [
