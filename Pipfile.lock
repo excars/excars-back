@@ -338,11 +338,10 @@
         },
         "sanic-cors": {
             "hashes": [
-                "sha256:7547f9a029cbbffa38f64a890aae186719e78ce83beba8d015c9a6fd09b348ff",
-                "sha256:7cbb7ee1d0f3bad2820b8c49571b9968a9d579fcdba602d44427cec12cd23a5c"
+                "sha256:0fbc4dab23f5e74bd0280863a92d60cffd5961186838b3f0821794a5528b0cd5",
+                "sha256:cd679c404c829656a892766fdbc9446c9560d0d9e9d407d582e6224f0c32e22c"
             ],
-            "index": "pypi",
-            "version": "==0.9.7"
+            "version": "==0.9.8"
         },
         "sanic-jwt": {
             "hashes": [
