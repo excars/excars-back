@@ -346,11 +346,10 @@
         },
         "sanic-jwt": {
             "hashes": [
-                "sha256:70f27133ef529bd42da2bd98a6b8e10c868fb8719850cd61bf8530ac52d6de7b",
-                "sha256:8fb49a5981718881fea5c6e68f724f29fbf20d5036215570271ee4eadd79899d"
+                "sha256:0bfdcfc00bb6aa1ea4c97cab2ec683ce9120cef993990ffc0584d7ff3beaeccd",
+                "sha256:25d4caee737ad0ca3ce1ee7f88168d9557da5b2cc89c269be01fbbfc0b70d8d8"
             ],
-            "index": "pypi",
-            "version": "==1.2.1"
+            "version": "==1.2.2"
         },
         "sanic-plugins-framework": {
             "hashes": [
