@@ -29,6 +29,7 @@ async def init(request, ws, user):
 
     while True:
         await asyncio.sleep(settings.READ_STREAM_FREQUENCY)
+        await ws.send('')
         messages = await redis.xread_group(
             group_name=user_uid,
             consumer_name=user_uid,

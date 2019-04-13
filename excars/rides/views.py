@@ -133,6 +133,8 @@ async def current_ride(request, user):
     ride_repo = repositories.RideRepository(request.app.redis)
 
     ride_uid = await ride_repo.get_ride_uid(user.uid)
+    if ride_uid is None:
+        raise sanic.exceptions.NotFound('Not Found')
     ride = await ride_repo.get(ride_uid)
     if not ride:
         raise sanic.exceptions.NotFound('Not Found')

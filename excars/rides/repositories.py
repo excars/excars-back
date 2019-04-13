@@ -84,6 +84,8 @@ class RideRepository:
         ))
 
     async def get(self, ride_uid: str) -> entities.Ride:
+        if not ride_uid:
+            raise Exception()
         keys = [key async for key in self.redis_cli.iscan(match=f'ride:{ride_uid}:passenger:*')]
         passengers_key = [key.decode().rpartition(':')[-1] for key in keys]
 
@@ -223,7 +225,7 @@ class UserLocationRepository:
             user_uid=str(user_uid),
             latitude=location.latitude,
             longitude=location.longitude,
-            course=location.course,
+            course=location.course or 0,
             ts=location.ts,
         )
 

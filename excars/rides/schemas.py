@@ -76,7 +76,7 @@ class UpdateRidePayload(marshmallow.Schema):
 class WSLocationPayload(marshmallow.Schema):
     latitude = fields.Float(required=True)
     longitude = fields.Float(required=True)
-    course = fields.Float(required=True)
+    course = fields.Float(required=False, allow_none=True)
 
 
 class RideRequestStreamSchema(marshmallow.Schema):
@@ -101,7 +101,7 @@ class UserLocationSchema(marshmallow.Schema):
     user_uid = fields.Str(required=True)
     latitude = fields.Float(required=True)
     longitude = fields.Float(required=True)
-    course = fields.Float(required=True)
+    course = fields.Float(required=False, allow_none=True)
     ts = fields.Float()
 
     @marshmallow.post_load
@@ -118,7 +118,7 @@ class UserLocationRedisSchema(marshmallow.Schema):
     user_uid = fields.Str(required=True)
     latitude = fields.Decimal(required=True, places=6)
     longitude = fields.Decimal(required=True, places=6)
-    course = fields.Decimal(required=True, places=6)
+    course = fields.Decimal(required=False, places=6, allow_nan=True)
     ts = fields.Float(required=True)
 
     @marshmallow.post_load
