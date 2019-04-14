@@ -1,6 +1,7 @@
 import asyncio
 
 import ujson as json
+
 from excars.rides import constants
 
 from . import event
