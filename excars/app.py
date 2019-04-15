@@ -1,7 +1,7 @@
 import sanic
 import sanic_cors
 
-from excars import auth, db, redis, rides, settings, ws
+from excars import auth, db, logging, redis, rides, settings, ws
 
 
 def create_app():
@@ -20,6 +20,7 @@ def create_app():
 def setup_listeners(app):
     app.register_listener(db.setup, 'before_server_start')
     app.register_listener(redis.setup, 'before_server_start')
+    app.register_listener(logging.setup, 'before_server_start')
     app.register_listener(redis.stop, 'before_server_stop')
 
 
