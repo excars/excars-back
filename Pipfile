@@ -15,6 +15,7 @@ social-storage-peewee = {git = "https://github.com/unmade/social-storage-peewee.
 marshmallow = "*"
 sanic = "*"
 cython = "*"
+sentry-sdk = "*"
 
 [dev-packages]
 isort = "*"
