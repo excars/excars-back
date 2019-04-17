@@ -5,7 +5,7 @@ case "$1" in
         exec bash
         ;;
     "web")
-        exec uvicorn excars.main:app --host 0.0.0.0 --port ${PORT:-8000}
+        exec uvicorn excars.main:app --host 0.0.0.0 --port ${PORT:-8000} --reload
         ;;
     *)
         exec ${@}

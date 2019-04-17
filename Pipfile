@@ -6,8 +6,9 @@ name = "pypi"
 [packages]
 "psycopg2-binary" = "*"
 aioredis = "*"
-fastapi = "*"
+fastapi = {extras = ["all"],version = "*"}
 uvicorn = "*"
+google-auth = "*"
 
 [dev-packages]
 isort = {extras = ["pipfile"],version = "*"}
