@@ -18,13 +18,14 @@ cython = "*"
 sentry-sdk = "*"
 
 [dev-packages]
-isort = "*"
+isort = {extras = ["pipfile"], version = "*"}
 "flake8" = "*"
 pylint = "*"
 pytest = "*"
 pytest-sanic = "*"
 pytest-cov = "*"
 pytest-mock = "*"
+pre-commit = "*"
 
 [requires]
 python_version = "3.7"

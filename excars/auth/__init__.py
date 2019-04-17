@@ -2,7 +2,7 @@ from sanic_jwt import Initialize
 
 from . import views
 
-__all__ = ['init']
+__all__ = ["init"]
 
 
 def init(app):

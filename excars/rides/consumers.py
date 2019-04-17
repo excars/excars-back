@@ -24,16 +24,16 @@ async def _send_ride_request_event(message_type, request, ws, message, user):
     data = schemas.RideRequestStreamSchema().load(message).data
     redis_cli = request.app.redis
 
-    sender = await repositories.ProfileRepository(redis_cli).get(data['sender']['uid'])
-    receiver = await repositories.ProfileRepository(redis_cli).get(data['receiver']['uid'])
+    sender = await repositories.ProfileRepository(redis_cli).get(data["sender"]["uid"])
+    receiver = await repositories.ProfileRepository(redis_cli).get(data["receiver"]["uid"])
 
     message = factories.make_message(
         message_type,
         payload={
-            'ride_uid': data['ride_uid'],
-            'sender': schemas.ProfileSchema().dump(sender).data,
-            'receiver': schemas.ProfileSchema().dump(receiver).data,
-        }
+            "ride_uid": data["ride_uid"],
+            "sender": schemas.ProfileSchema().dump(sender).data,
+            "receiver": schemas.ProfileSchema().dump(receiver).data,
+        },
     )
 
     await ws.send(schemas.MessageSchema().dumps(message).data)
@@ -52,11 +52,6 @@ async def ride_cancelled(request, ws, message, user):
 async def _send_ride_event(message_type, request, ws, message, user):
     del request, user
 
-    message = factories.make_message(
-        message_type,
-        payload={
-            'ride_uid': message['ride_uid'],
-        }
-    )
+    message = factories.make_message(message_type, payload={"ride_uid": message["ride_uid"]})
 
     await ws.send(schemas.MessageSchema().dumps(message).data)

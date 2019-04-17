@@ -35,9 +35,9 @@ class ProfileRedisSchema(marshmallow.Schema):
     avatar = fields.Str(required=True)
     plate = fields.Str(required=True)
     role = fields.Str(required=True)
-    dest_name = fields.Str(attribute='destination.name', required=True)
-    dest_lat = fields.Float(attribute='destination.latitude', required=True)
-    dest_lon = fields.Float(attribute='destination.longitude', required=True)
+    dest_name = fields.Str(attribute="destination.name", required=True)
+    dest_lat = fields.Float(attribute="destination.latitude", required=True)
+    dest_lon = fields.Float(attribute="destination.longitude", required=True)
 
     @marshmallow.post_load
     def make_profile(self, data):  # pylint: disable=no-self-use
@@ -46,10 +46,7 @@ class ProfileRedisSchema(marshmallow.Schema):
 
 class JoinPayload(marshmallow.Schema):
     role = fields.Str(
-        validate=validate.OneOf(
-            choices=[constants.Role.DRIVER, constants.Role.HITCHHIKER]
-        ),
-        required=True,
+        validate=validate.OneOf(choices=[constants.Role.DRIVER, constants.Role.HITCHHIKER]), required=True
     )
     destination = fields.Nested(DestinationSchema, required=True)
 
@@ -60,17 +57,15 @@ class CreateRidePayload(marshmallow.Schema):
 
 class UpdateRidePayload(marshmallow.Schema):
     status = fields.Str(
-        validate=validate.OneOf(
-            choices=[constants.RideRequestStatus.ACCEPTED, constants.RideRequestStatus.DECLINED]
-        ),
+        validate=validate.OneOf(choices=[constants.RideRequestStatus.ACCEPTED, constants.RideRequestStatus.DECLINED]),
         required=True,
     )
 
     def __init__(self, *args, role: typing.Optional[str] = None, **kwargs):
         super().__init__(*args, **kwargs)
         if role == constants.Role.DRIVER:
-            self.declared_fields['passenger_uid'] = fields.Str(required=True)
-            self.fields['passenger_uid'] = fields.Str(required=True)
+            self.declared_fields["passenger_uid"] = fields.Str(required=True)
+            self.fields["passenger_uid"] = fields.Str(required=True)
 
 
 class WSLocationPayload(marshmallow.Schema):
@@ -82,8 +77,8 @@ class WSLocationPayload(marshmallow.Schema):
 class RideRequestStreamSchema(marshmallow.Schema):
     type = fields.Str()
     ride_uid = fields.Str()
-    sender_uid = fields.Str(attribute='sender.uid')
-    receiver_uid = fields.Str(attribute='receiver.uid')
+    sender_uid = fields.Str(attribute="sender.uid")
+    receiver_uid = fields.Str(attribute="receiver.uid")
 
 
 class PassengerSchema(marshmallow.Schema):

@@ -15,7 +15,7 @@ async def setup(app, _):
 
 def _init_db(app, db):
     connection_params = db_url.parse(app.config.DB_URL)
-    return db.init(connection_params['database'])
+    return db.init(connection_params["database"])
 
 
 def create_tables(app, db):
