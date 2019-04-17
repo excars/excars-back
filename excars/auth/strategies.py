@@ -10,14 +10,13 @@ def load_strategy(request):
     return SanicStrategy(FlaskStorage, request=request)
 
 
-def load_backend(strategy, redirect_uri=''):
-    if 'id_token' in strategy.request_data():
+def load_backend(strategy, redirect_uri=""):
+    if "id_token" in strategy.request_data():
         return google.GooglePlusAuth(strategy, redirect_uri)
     return google.GoogleOAuth2(strategy, redirect_uri)
 
 
 class SanicStrategy(BaseStrategy):  # pylint: disable=too-many-public-methods
-
     def __init__(self, storage, request, tpl=None):
         self.request = request
         super().__init__(storage, tpl)
@@ -26,7 +25,7 @@ class SanicStrategy(BaseStrategy):  # pylint: disable=too-many-public-methods
         return getattr(self.request.app.config, name)
 
     def request_data(self, merge=True):
-        data = self.request.get('auth_data', {})
+        data = self.request.get("auth_data", {})
         return data
 
     def request_post(self):
@@ -36,22 +35,22 @@ class SanicStrategy(BaseStrategy):  # pylint: disable=too-many-public-methods
         return self.request.args.copy()
 
     def request_host(self):
-        return self.request.host.partition(':')[0]
+        return self.request.host.partition(":")[0]
 
     def request_port(self):
-        return self.request.host.partition(':')[2]
+        return self.request.host.partition(":")[2]
 
     def request_path(self):
         return self.request.path
 
     def request_is_secure(self):
-        return self.request.scheme == 'https'
+        return self.request.scheme == "https"
 
     def build_absolute_uri(self, path=None):
-        url = f'{self.request.scheme}://{self.request.host}'
+        url = f"{self.request.scheme}://{self.request.host}"
         if path:
             return urllib.parse.urljoin(url, path)
-        return f'{url}{self.request.path}'
+        return f"{url}{self.request.path}"
 
     def redirect(self, url):
         return response.redirect(url)

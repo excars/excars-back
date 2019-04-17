@@ -21,18 +21,17 @@ async def publish_map(request, ws, user):
         map_items = await _prepare_map(user.uid, locations, profile_repo, ride_repo)
 
         message = factories.make_message(
-            constants.MessageType.MAP,
-            payload=schemas.MapItemSchema(many=True).dump(map_items).data,
+            constants.MessageType.MAP, payload=schemas.MapItemSchema(many=True).dump(map_items).data
         )
 
         await ws.send(schemas.MessageSchema().dumps(message).data)
 
 
 async def _prepare_map(
-        user_uid: str,
-        locations: typing.List[entities.UserLocation],
-        profile_repo: repositories.ProfileRepository,
-        ride_repo: repositories.RideRepository,
+    user_uid: str,
+    locations: typing.List[entities.UserLocation],
+    profile_repo: repositories.ProfileRepository,
+    ride_repo: repositories.RideRepository,
 ) -> typing.List[entities.MapItem]:
     user_ride_uid = await ride_repo.get_ride_uid(user_uid)
 
@@ -49,10 +48,10 @@ async def _prepare_map(
         if ride_uid and ride_uid != user_ride_uid:
             continue
 
-        map_items.append(factories.make_map_item(
-            profile=profile,
-            location=location,
-            has_same_ride=bool(user_ride_uid and (user_ride_uid == ride_uid)),
-        ))
+        map_items.append(
+            factories.make_map_item(
+                profile=profile, location=location, has_same_ride=bool(user_ride_uid and (user_ride_uid == ride_uid))
+            )
+        )
 
     return map_items

@@ -12,29 +12,26 @@ from excars.auth import models, views
 @pytest.fixture
 def request_mock(loop):
     request = mock.MagicMock()
-    request.json = {
-        'code': '1234',
-        'redirect_uri': 'http://localhost:3000'
-    }
+    request.json = {"code": "1234", "redirect_uri": "http://localhost:3000"}
     request.app.loop = loop
 
-    request.scheme = 'https'
-    request.host = 'localhost:8080'
-    request.path = '/posts/1/'
+    request.scheme = "https"
+    request.host = "localhost:8080"
+    request.path = "/posts/1/"
 
-    request.app.config.SOCIAL_AUTH_ALLOWED_EMAIL_DOMAINS = ['excars.com']
+    request.app.config.SOCIAL_AUTH_ALLOWED_EMAIL_DOMAINS = ["excars.com"]
 
     return request
 
 
 async def test_authenticate_success(request_mock):
-    user = models.User(id=1, username='user', email='user@excars.com')
+    user = models.User(id=1, username="user", email="user@excars.com")
     strategy = mock.MagicMock()
     backend = mock.MagicMock()
     backend.complete = mock.MagicMock(return_value=user)
 
-    load_strategy = mock.patch('excars.auth.strategies.load_strategy', return_value=strategy)
-    load_backend = mock.patch('excars.auth.strategies.load_backend', return_value=backend)
+    load_strategy = mock.patch("excars.auth.strategies.load_strategy", return_value=strategy)
+    load_backend = mock.patch("excars.auth.strategies.load_backend", return_value=backend)
 
     with load_strategy as load_strategy_mock, load_backend as load_backend_mock:
         response = await views.authenticate(request_mock)
@@ -49,19 +46,17 @@ async def test_authenticate_success(request_mock):
 
     assert backend.REDIRECT_STATE is False
     assert backend.STATE_PARAMETER is False
-    assert backend.redirect_uri == 'http://localhost:3000'
+    assert backend.redirect_uri == "http://localhost:3000"
     assert backend.complete.called
 
 
 async def test_authenticate_failure_due_to_email_domain_restriction(request_mock):
     strategy = mock.MagicMock()
     backend = mock.MagicMock()
-    backend.complete = mock.MagicMock(
-        return_value=models.User(id=1, username='user', email='user@google.com')
-    )
+    backend.complete = mock.MagicMock(return_value=models.User(id=1, username="user", email="user@google.com"))
 
-    load_strategy = mock.patch('excars.auth.strategies.load_strategy', return_value=strategy)
-    load_backend = mock.patch('excars.auth.strategies.load_backend', return_value=backend)
+    load_strategy = mock.patch("excars.auth.strategies.load_strategy", return_value=strategy)
+    load_backend = mock.patch("excars.auth.strategies.load_backend", return_value=backend)
 
     with load_strategy, load_backend:
         with pytest.raises(sanic_jwt.exceptions.AuthenticationFailed):
@@ -71,12 +66,10 @@ async def test_authenticate_failure_due_to_email_domain_restriction(request_mock
 async def test_authenticate_failure_due_to_oauth(request_mock):
     strategy = mock.MagicMock()
     backend = mock.MagicMock()
-    backend.complete = mock.MagicMock(
-        side_effect=social_core.exceptions.AuthCanceled(backend)
-    )
+    backend.complete = mock.MagicMock(side_effect=social_core.exceptions.AuthCanceled(backend))
 
-    load_strategy = mock.patch('excars.auth.strategies.load_strategy', return_value=strategy)
-    load_backend = mock.patch('excars.auth.strategies.load_backend', return_value=backend)
+    load_strategy = mock.patch("excars.auth.strategies.load_strategy", return_value=strategy)
+    load_backend = mock.patch("excars.auth.strategies.load_backend", return_value=backend)
 
     with load_strategy, load_backend:
         with pytest.raises(sanic_jwt.exceptions.AuthenticationFailed):
@@ -86,7 +79,7 @@ async def test_authenticate_failure_due_to_oauth(request_mock):
 @pytest.mark.require_db
 async def test_retrieve_user_returns_user(request_mock, create_user):
     user = create_user()
-    payload = {'user_id': str(user.uid)}
+    payload = {"user_id": str(user.uid)}
 
     response = await views.retrieve_user(request_mock, payload)
 
@@ -94,12 +87,7 @@ async def test_retrieve_user_returns_user(request_mock, create_user):
 
 
 @pytest.mark.require_db
-@pytest.mark.parametrize('payload', [
-    None,
-    {},
-    {'code': 1},
-    {'user_id': uuid.uuid4()},
-])
+@pytest.mark.parametrize("payload", [None, {}, {"code": 1}, {"user_id": uuid.uuid4()}])
 async def test_retrieve_user_returns_none(request_mock, payload):
     response = await views.retrieve_user(request_mock, payload)
     assert response is None

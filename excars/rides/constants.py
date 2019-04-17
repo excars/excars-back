@@ -1,30 +1,27 @@
 class Role:
-    DRIVER = 'driver'
-    HITCHHIKER = 'hitchhiker'
+    DRIVER = "driver"
+    HITCHHIKER = "hitchhiker"
 
     @classmethod
     def opposite(cls, role: str) -> str:
-        role_map = {
-            cls.HITCHHIKER: cls.DRIVER,
-            cls.DRIVER: cls.HITCHHIKER
-        }
+        role_map = {cls.HITCHHIKER: cls.DRIVER, cls.DRIVER: cls.HITCHHIKER}
         return role_map[role]
 
 
 class MessageType:
-    LOCATION = 'LOCATION'
-    MAP = 'MAP'
-    RIDE_REQUESTED = 'RIDE_REQUESTED'
-    RIDE_REQUEST_ACCEPTED = 'RIDE_REQUEST_ACCEPTED'
-    RIDE_REQUEST_DECLINED = 'RIDE_REQUEST_DECLINED'
-    RIDE_UPDATED = 'RIDE_UPDATED'
-    RIDE_CANCELLED = 'RIDE_CANCELLED'
+    LOCATION = "LOCATION"
+    MAP = "MAP"
+    RIDE_REQUESTED = "RIDE_REQUESTED"
+    RIDE_REQUEST_ACCEPTED = "RIDE_REQUEST_ACCEPTED"
+    RIDE_REQUEST_DECLINED = "RIDE_REQUEST_DECLINED"
+    RIDE_UPDATED = "RIDE_UPDATED"
+    RIDE_CANCELLED = "RIDE_CANCELLED"
 
-    SOCKET_CLOSE = '_WEBSOCKET_CLOSE'
-    SOCKET_OPEN = '_WEBSOCKET_OPEN'
+    SOCKET_CLOSE = "_WEBSOCKET_CLOSE"
+    SOCKET_OPEN = "_WEBSOCKET_OPEN"
 
 
 class RideRequestStatus:
-    REQUESTED = 'requested'
-    ACCEPTED = 'accepted'
-    DECLINED = 'declined'
+    REQUESTED = "requested"
+    ACCEPTED = "accepted"
+    DECLINED = "declined"

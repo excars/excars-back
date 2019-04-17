@@ -6,7 +6,7 @@ from excars.auth import init, views
 def test_init():
     app = mock.MagicMock()
 
-    with mock.patch('excars.auth.Initialize') as jwt_init:
+    with mock.patch("excars.auth.Initialize") as jwt_init:
         init(app)
 
     assert jwt_init.called

@@ -10,13 +10,13 @@ from excars import app
 from excars.db import database, get_models
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def db():
     _drop_test_database()
     _create_test_database()
 
     connection_params = db_url.parse(app.application.config.DB_URL)
-    connection_params['database'] = _get_test_database_name()
+    connection_params["database"] = _get_test_database_name()
 
     test_db = database.__class__(**connection_params)
     init_social(app.application, test_db)
@@ -35,7 +35,7 @@ def db():
     _drop_test_database()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def transaction(db):
     with db.transaction() as txn:
         yield txn
@@ -44,29 +44,29 @@ def transaction(db):
 
 @pytest.fixture(autouse=True)
 def _require_db_marker(request):
-    marker = request.node.get_closest_marker('require_db')
+    marker = request.node.get_closest_marker("require_db")
     if marker:
-        return request.getfixturevalue('transaction')
+        return request.getfixturevalue("transaction")
     return None
 
 
 def _create_test_database():
-    _execute_sql('CREATE DATABASE %s ;' % _get_test_database_name())
+    _execute_sql("CREATE DATABASE %s ;" % _get_test_database_name())
 
 
 def _drop_test_database():
-    _execute_sql('DROP DATABASE IF EXISTS %s ;' % _get_test_database_name())
+    _execute_sql("DROP DATABASE IF EXISTS %s ;" % _get_test_database_name())
 
 
 def _execute_sql(query, values=None):
     conn_params = db_url.parse(app.application.config.DB_URL)
 
     conn = psycopg2.connect(
-        user=conn_params['user'],
-        password=conn_params.get('password'),
-        host=conn_params['host'],
-        port=conn_params['port'],
-        dbname=conn_params['database'],
+        user=conn_params["user"],
+        password=conn_params.get("password"),
+        host=conn_params["host"],
+        port=conn_params["port"],
+        dbname=conn_params["database"],
     )
 
     conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)

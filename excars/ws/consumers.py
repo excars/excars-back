@@ -12,32 +12,19 @@ async def init(request, ws, user):
     stream = utils.get_user_stream(user_uid)
 
     # push message to stream just to create it
-    await redis.xadd(
-        stream=stream,
-        fields={
-            b'type': b'CREATE',
-            b'user': user_uid,
-        }
-    )
+    await redis.xadd(stream=stream, fields={b"type": b"CREATE", b"user": user_uid})
 
-    groups = [group[b'name'].decode() for group in await redis.xinfo_groups(stream)]
+    groups = [group[b"name"].decode() for group in await redis.xinfo_groups(stream)]
     if user_uid not in groups:
-        await redis.xgroup_create(
-            stream=stream,
-            group_name=user_uid,
-        )
+        await redis.xgroup_create(stream=stream, group_name=user_uid)
 
     while True:
         await asyncio.sleep(settings.READ_STREAM_FREQUENCY)
         messages = await redis.xread_group(
-            group_name=user_uid,
-            consumer_name=user_uid,
-            streams=[stream],
-            latest_ids=['>'],
-            timeout=1,
+            group_name=user_uid, consumer_name=user_uid, streams=[stream], latest_ids=[">"], timeout=1
         )
         for message in messages:
             message = redis_utils.decode(message[2])
-            handler = event.get_consumers(message.get('type', ''))
+            handler = event.get_consumers(message.get("type", ""))
             if handler:
                 await handler(request, ws, message, user)

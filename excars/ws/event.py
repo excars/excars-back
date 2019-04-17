@@ -8,7 +8,6 @@ _consumers_registry = {}  # pylint: disable=invalid-name
 
 
 def listen(event_type: str):
-
     def deco(func):
         _listeners_registry[event_type] = func
         return func
@@ -42,13 +41,11 @@ def get_consumers(message_type: str):
 
 
 def discover():
-    pkgs = [
-        'excars.rides',
-    ]
+    pkgs = ["excars.rides"]
 
     for pkg in pkgs:
         pkg_dir = pathlib.Path(importlib.import_module(pkg).__file__).absolute().parent
         modules = [name for _, name, is_pkg in pkgutil.iter_modules([pkg_dir]) if not is_pkg]
 
         for module in modules:
-            importlib.import_module(f'{pkg}.{module}')
+            importlib.import_module(f"{pkg}.{module}")

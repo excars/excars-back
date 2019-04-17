@@ -16,9 +16,9 @@ async def init(request, ws, user):
                 message = json.loads(await ws.recv())
             except ValueError:
                 continue
-            handler = event.get_listener(message['type'])
+            handler = event.get_listener(message["type"])
             if handler:
-                asyncio.create_task(handler(request, ws, message['data'], user))
+                asyncio.create_task(handler(request, ws, message["data"], user))
     finally:
         handler = event.get_listener(constants.MessageType.SOCKET_CLOSE)
         asyncio.create_task(handler(request, ws, {}, user))
