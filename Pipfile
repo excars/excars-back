@@ -4,25 +4,16 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-peewee = "*"
 "psycopg2-binary" = "*"
 aioredis = "*"
-social-auth-core = "*"
-sanic-jwt = "*"
-sanic-cors = "*"
-social-auth-app-flask-peewee = "*"
-social-storage-peewee = {git = "https://github.com/unmade/social-storage-peewee.git"}
-marshmallow = "*"
-sanic = "*"
-cython = "*"
-sentry-sdk = "*"
+fastapi = "*"
+uvicorn = "*"
 
 [dev-packages]
-isort = {extras = ["pipfile"], version = "*"}
+isort = {extras = ["pipfile"],version = "*"}
 "flake8" = "*"
 pylint = "*"
 pytest = "*"
-pytest-sanic = "*"
 pytest-cov = "*"
 pytest-mock = "*"
 pre-commit = "*"
