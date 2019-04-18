@@ -1,7 +1,13 @@
 from decimal import Decimal
+from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel
+
+
+class Role(str, Enum):
+    driver = "driver"
+    hitchhiker = "hitchhiker"
 
 
 class Destination(BaseModel):
@@ -11,7 +17,7 @@ class Destination(BaseModel):
 
 
 class JoinRequest(BaseModel):
-    role: str
+    role: Role
     destination: Destination
 
 
@@ -19,5 +25,5 @@ class Profile(BaseModel):
     user_id: str
     name: str
     avatar: str
-    role: Optional[str]
+    role: Optional[Role]
     destination: Optional[Destination]
