@@ -1,6 +1,6 @@
 from aioredis import Redis
 
-from excars.models.rides import Profile
+from excars.models.profiles import Profile
 
 
 def _get_key(user_id: str):
