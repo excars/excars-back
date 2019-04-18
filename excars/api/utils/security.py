@@ -25,8 +25,8 @@ request = Request()  # pylint: disable=invalid-name
 def get_current_user(token: str = Security(oauth2)):
     try:
         payload = verify_oauth2_token(token.rpartition(" ")[-1], Request(), config.GOOGLE_OAUTH2_CLIENT_ID)
-    except ValueError:
-        raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="Token expired.")
+    except ValueError as exc:
+        raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     if payload["iss"] not in ["accounts.google.com", "https://accounts.google.com"]:
         raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="Wrong issuer.")
     try:

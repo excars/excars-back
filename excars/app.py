@@ -1,14 +1,15 @@
 import sanic
-import sanic_cors
 
 from excars import auth, db, logging, redis, rides, settings, ws
+
+# import sanic_cors
 
 
 def create_app():
     app = sanic.Sanic()
     app.config.from_object(settings)
 
-    sanic_cors.CORS(app, automatic_options=True)
+    # sanic_cors.CORS(app, automatic_options=True)
 
     auth.init(app)
     rides.init(app)
