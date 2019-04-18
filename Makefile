@@ -15,7 +15,7 @@ pylint:
 
 
 test:
-	@pytest
+	@pytest excars/tests
 
 
 lint: isort flake8 pylint
