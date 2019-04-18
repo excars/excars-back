@@ -1,5 +1,5 @@
 from aioredis import Redis
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from excars import repositories
 from excars.api.utils.redis import get_redis_cli
@@ -15,7 +15,7 @@ async def join(
     *, join_request: JoinRequest, user: User = Depends(get_current_user), redis_cli: Redis = Depends(get_redis_cli)
 ):
     """
-    Sets role for current user
+    Sets role and destination for current user
     """
     profile = Profile(
         user_id=user.user_id,
@@ -27,4 +27,15 @@ async def join(
 
     await repositories.profile.save(redis_cli, profile)
 
+    return profile
+
+
+@router.get("/profiles/{profile_id}", tags=["profiles"], response_model=Profile)
+async def get_profile(profile_id: int, redis_cli: Redis = Depends(get_redis_cli)):
+    """
+    Gets profile
+    """
+    profile = await repositories.profile.get(redis_cli, profile_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found.")
     return profile

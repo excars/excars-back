@@ -18,6 +18,7 @@ pytest = "*"
 pytest-cov = "*"
 pytest-mock = "*"
 pre-commit = "*"
+pytest-faker = "*"
 
 [requires]
 python_version = "3.7"
