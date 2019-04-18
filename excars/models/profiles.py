@@ -1,6 +1,5 @@
 from decimal import Decimal
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -25,5 +24,5 @@ class Profile(BaseModel):
     user_id: str
     name: str
     avatar: str
-    role: Optional[Role]
-    destination: Optional[Destination]
+    role: Role
+    destination: Destination
