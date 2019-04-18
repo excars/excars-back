@@ -6,12 +6,13 @@ from excars.models.profiles import Profile, Role
 
 
 def test_join(client, faker, token_headers):
+    role = random.choice([Role.driver, Role.hitchhiker])
     with client as cli:
         response = cli.post(
             "/api/v1/profiles",
             headers=token_headers,
             json={
-                "role": random.choice([Role.driver, Role.hitchhiker]),
+                "role": role,
                 "destination": {
                     "name": faker.name(),
                     "latitude": str(faker.latitude()),
@@ -21,7 +22,7 @@ def test_join(client, faker, token_headers):
         )
 
     assert response.status_code == 200
-    assert response.json()["role"] == "driver"
+    assert response.json()["role"] == role
 
 
 def test_get_profile(client, profile_factory, token_headers):
