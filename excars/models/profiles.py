@@ -8,6 +8,11 @@ class Role(str, Enum):
     driver = "driver"
     hitchhiker = "hitchhiker"
 
+    @classmethod
+    def opposite(cls, role: "Role") -> str:
+        role_map = {cls.driver: cls.hitchhiker, cls.hitchhiker: cls.driver}
+        return role_map[role]
+
 
 class Destination(BaseModel):
     name: str
