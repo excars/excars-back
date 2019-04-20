@@ -8,22 +8,32 @@ from excars.main import app
 
 
 @pytest.fixture
-def token_payload():
-    return {
-        "sub": "101248120531028200825",
-        "iss": "https://accounts.google.com",
-        "email": "example@gmail.com",
-        "name": "Name Placeholder",
-        "picture": "path/to/photo.jpg",
-        "given_name": "Name",
-        "family_name": "Placeholder",
-    }
+def make_token_payload(faker):
+    def token_payload(**kwargs):
+        defaults = {
+            "sub": faker.pyint(),
+            "iss": "https://accounts.google.com",
+            "email": faker.email(),
+            "name": faker.name(),
+            "picture": faker.url(),
+            "given_name": faker.first_name(),
+            "family_name": faker.last_name(),
+        }
+        defaults.update(kwargs)
+        return defaults
+
+    return token_payload
 
 
 @pytest.fixture
-def token_headers(mocker, token_payload):
-    with mocker.patch("excars.api.utils.security.verify_oauth2_token", return_value=token_payload):
-        yield {"Authorization": "Bearer fake.jwt.token"}
+def make_token_headers(mocker, faker, make_token_payload):
+    def token_headers_for(user_id: int = None):
+        user_id = user_id or faker.pyint()
+        payload = make_token_payload(sub=user_id)
+        mocker.patch("excars.api.utils.security.verify_oauth2_token", return_value=payload)
+        return {"Authorization": "Bearer fake.jwt.token"}
+
+    return token_headers_for
 
 
 @pytest.fixture

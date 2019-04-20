@@ -26,16 +26,14 @@ async def create_ride_request(
 
     sender = await repositories.profile.get(redis_cli, int(user.user_id))
     if not sender:
-        await repositories.profile.save(
-            redis_cli,
-            Profile(
-                user_id=user.user_id,
-                name=user.name,
-                avatar=user.avatar,
-                role=Role.opposite(receiver.role),
-                destination=receiver.destination,
-            ),
+        sender = Profile(
+            user_id=user.user_id,
+            name=user.name,
+            avatar=user.avatar,
+            role=Role.opposite(receiver.role),
+            destination=receiver.destination,
         )
+        await repositories.profile.save(redis_cli, sender)
 
     ride_request = RideRequest(sender=sender, receiver=receiver, status=RideRequestStatus.requested)
     await repositories.rides.create_request(redis_cli, ride_request)
