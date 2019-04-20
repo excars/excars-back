@@ -47,7 +47,7 @@ async def leave_ride(user: User = Depends(get_current_user), redis_cli: Redis = 
 
 @router.put("/rides/{ride_id}", response_model=RideRequest)
 async def update_ride_request(
-    ride_id: int,
+    *,
     ride_update: RideRequestUpdate,
     user: User = Depends(get_current_user),
     redis_cli: Redis = Depends(get_redis_cli),
@@ -59,7 +59,7 @@ async def update_ride_request(
     if not receiver:
         raise HTTPException(status_code=404, detail="Receiver not found.")
 
-    sender = await repositories.profile.get(redis_cli, ride_update.passenger_id or ride_id)
+    sender = await repositories.profile.get(redis_cli, ride_update.sender)
     if not sender:
         raise HTTPException(status_code=404, detail="Sender not found.")
 

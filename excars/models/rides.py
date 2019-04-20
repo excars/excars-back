@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional
+from typing import List
 
 from pydantic import BaseModel
 
@@ -43,7 +43,7 @@ class RideRequestCreate(BaseModel):
 
 class RideRequestUpdate(BaseModel):
     status: RideRequestStatus
-    passenger_id: Optional[int]
+    sender: int
 
 
 class Passenger(BaseModel):
