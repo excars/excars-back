@@ -5,7 +5,7 @@ from excars import repositories
 from excars.api.utils.redis import get_redis_cli
 from excars.api.utils.security import get_current_user
 from excars.models.profiles import Profile, Role
-from excars.models.rides import RideRequest, RideRequestCreate, RideRequestStatus, RideRequestUpdate
+from excars.models.rides import Ride, RideRequest, RideRequestCreate, RideRequestStatus, RideRequestUpdate
 from excars.models.user import User
 
 router = APIRouter()
@@ -43,6 +43,18 @@ async def leave_ride(user: User = Depends(get_current_user), redis_cli: Redis = 
         raise HTTPException(status_code=404, detail="Profile not found.")
     await repositories.rides.delete_or_exclude(redis_cli, profile)
     return {}
+
+
+@router.get("/rides/current", response_model=Ride)
+async def get_current_ride(user: User = Depends(get_current_user), redis_cli: Redis = Depends(get_redis_cli)):
+    """
+    Returns current ride
+    """
+    ride_id = await repositories.rides.get_ride_id(redis_cli, user.user_id)
+    if not ride_id:
+        raise HTTPException(status_code=404, detail="Ride not found.")
+    ride = await repositories.rides.get(redis_cli, ride_id)
+    return ride
 
 
 @router.put("/rides/{ride_id}", response_model=RideRequest)

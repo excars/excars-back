@@ -51,22 +51,22 @@ async def _exclude(redis_cli: Redis, user_id: int) -> None:
         await redis_cli.delete(f"ride:{ride_uid}:passenger:{user_id}")
 
 
-async def get(redis_cli: Redis, ride_uid: int) -> Ride:
-    keys = [key async for key in redis_cli.iscan(match=f"ride:{ride_uid}:passenger:*")]
+async def get(redis_cli: Redis, ride_id: int) -> Ride:
+    keys = [key async for key in redis_cli.iscan(match=f"ride:{ride_id}:passenger:*")]
     passengers_key = [key.decode().rpartition(":")[-1] for key in keys]
 
-    driver = await profile_repo.get(redis_cli, ride_uid)
+    driver = await profile_repo.get(redis_cli, ride_id)
 
     passengers = []
     for key in passengers_key:
         passengers.append(
             Passenger(
                 profile=await profile_repo.get(redis_cli, key),
-                status=(await redis_cli.get(f"ride:{ride_uid}:passenger:{key}")).decode(),
+                status=(await redis_cli.get(f"ride:{ride_id}:passenger:{key}")).decode(),
             )
         )
 
-    return Ride(ride_id=str(ride_uid), driver=driver, passengers=passengers)
+    return Ride(ride_id=str(ride_id), driver=driver, passengers=passengers)
 
 
 async def get_ride_id(redis_cli: Redis, user_id: int) -> Optional[int]:
