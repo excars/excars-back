@@ -17,16 +17,8 @@ async def join(
     """
     Sets role and destination for current user
     """
-    profile = Profile(
-        user_id=user.user_id,
-        name=user.name,
-        avatar=user.avatar,
-        role=join_request.role,
-        destination=join_request.destination,
-    )
-
+    profile = Profile.from_user(user, role=join_request.role, destination=join_request.destination)
     await repositories.profile.save(redis_cli, profile)
-
     return profile
 
 

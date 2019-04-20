@@ -34,3 +34,7 @@ class RideRequest(BaseModel):
         if self.receiver.role == role:
             return self.receiver
         raise Exception()
+
+
+class RideRequestIn(BaseModel):
+    receiver: int
