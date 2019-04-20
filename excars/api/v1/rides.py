@@ -16,13 +16,13 @@ async def create_ride_request(
     ride_create: RideRequestCreate, user: User = Depends(get_current_user), redis_cli: Redis = Depends(get_redis_cli)
 ):
     """
-    Creates ride request for specified receiver
+    Creates request for a ride
     """
     receiver = await repositories.profile.get(redis_cli, ride_create.receiver)
     if not receiver:
         raise HTTPException(status_code=404, detail="Receiver not found.")
 
-    sender = await repositories.profile.get(redis_cli, int(user.user_id))
+    sender = await repositories.profile.get(redis_cli, user.user_id)
     if not sender:
         sender = Profile.from_user(user, role=Role.opposite(receiver.role), destination=receiver.destination)
         await repositories.profile.save(redis_cli, sender)
@@ -33,7 +33,19 @@ async def create_ride_request(
     return ride_request
 
 
-@router.put("/rides/{ride_id}")
+@router.delete("/rides", status_code=204)
+async def leave_ride(user: User = Depends(get_current_user), redis_cli: Redis = Depends(get_redis_cli)):
+    """
+    Remove current user from ride
+    """
+    profile = await repositories.profile.get(redis_cli, user.user_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found.")
+    await repositories.rides.delete_or_exclude(redis_cli, profile)
+    return {}
+
+
+@router.put("/rides/{ride_id}", response_model=RideRequest)
 async def update_ride_request(
     ride_id: int,
     ride_update: RideRequestUpdate,
@@ -43,7 +55,7 @@ async def update_ride_request(
     """
     Updates ride request status
     """
-    receiver = await repositories.profile.get(redis_cli, int(user.user_id))
+    receiver = await repositories.profile.get(redis_cli, user.user_id)
     if not receiver:
         raise HTTPException(status_code=404, detail="Receiver not found.")
 

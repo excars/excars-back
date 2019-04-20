@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -18,7 +18,7 @@ class RideRequest(BaseModel):
     status: RideRequestStatus
 
     @property
-    def ride_uid(self) -> str:
+    def ride_uid(self) -> int:
         return self.driver.user_id
 
     @property
@@ -44,3 +44,14 @@ class RideRequestCreate(BaseModel):
 class RideRequestUpdate(BaseModel):
     status: RideRequestStatus
     passenger_id: Optional[int]
+
+
+class Passenger(BaseModel):
+    profile: Profile
+    status: RideRequestStatus
+
+
+class Ride(BaseModel):
+    ride_id: int
+    driver: Profile
+    passengers: List[Passenger]
