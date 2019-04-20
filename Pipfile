@@ -4,10 +4,8 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-"psycopg2-binary" = "*"
 aioredis = "*"
-fastapi = {extras = ["all"],version = "*"}
-uvicorn = "*"
+fastapi = "*"
 google-auth = "*"
 
 [dev-packages]

@@ -16,6 +16,5 @@ def test_create_ride_request(client, profile_factory, token_headers):
 
         response = cli.post("/api/v1/rides", headers=token_headers, json={"receiver": receiver.user_id})
 
-    print(response.content)
     assert response.status_code == 200
     assert RideRequest(**response.json())
