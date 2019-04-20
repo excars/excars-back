@@ -10,3 +10,4 @@ REDIS_POOL_MAX = int(os.getenv("REDIS_POOL_MAX", "10"))
 _MIN = 60
 
 RIDE_REQUEST_TTL = 5 * _MIN
+RIDE_TTL = 60 * _MIN

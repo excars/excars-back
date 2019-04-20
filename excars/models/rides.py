@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -36,5 +37,10 @@ class RideRequest(BaseModel):
         raise Exception()
 
 
-class RideRequestIn(BaseModel):
+class RideRequestCreate(BaseModel):
     receiver: int
+
+
+class RideRequestUpdate(BaseModel):
+    status: RideRequestStatus
+    passenger_id: Optional[int]
