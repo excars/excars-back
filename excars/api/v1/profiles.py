@@ -23,10 +23,13 @@ async def join(
 
 
 @router.get("/profiles/{profile_id}", tags=["profiles"], response_model=Profile)
-async def get_profile(profile_id: int, redis_cli: Redis = Depends(get_redis_cli)):
+async def get_profile(
+    profile_id: int, user: User = Depends(get_current_user), redis_cli: Redis = Depends(get_redis_cli)
+):
     """
     Gets profile
     """
+    del user
     profile = await repositories.profile.get(redis_cli, profile_id)
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found.")
