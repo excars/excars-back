@@ -1,6 +1,7 @@
 from enum import Enum
+from typing import Any
 
-from pydantic import BaseModel, Json
+from pydantic import BaseModel
 
 
 class MessageType(str, Enum):
@@ -18,4 +19,4 @@ class MessageType(str, Enum):
 
 class Message(BaseModel):
     type: MessageType
-    data: Json
+    data: Any

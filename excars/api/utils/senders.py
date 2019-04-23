@@ -1,5 +1,4 @@
 import asyncio
-import json
 from typing import List
 
 from aioredis import Redis
@@ -19,8 +18,8 @@ async def publish_map(websocket: WebSocket, user: User, redis_cli: Redis):
     while True:
         locations = await repositories.locations.list_for(redis_cli, user_id=user.user_id)
         map_items = await _prepare_map(user.user_id, locations, redis_cli)
-        message = Message(type=MessageType.map, data=json.dumps(map_items))
-        await websocket.send_json(message.dict())
+        message = Message(type=MessageType.map, data=map_items)
+        await websocket.send_text(message.json())
         await asyncio.sleep(config.PUBLISH_MAP_FREQUENCY)
 
 

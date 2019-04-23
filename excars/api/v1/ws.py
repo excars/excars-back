@@ -35,8 +35,8 @@ class Stream(WebSocketEndpoint):
     async def on_receive(self, websocket: WebSocket, data) -> None:
         try:
             message = Message(**data)
-        except ValidationError:
-            pass
+        except ValidationError as exc:
+            await websocket.send_json(exc.json())
         else:
             await receivers.handle(message, self.user, self.redis_cli)
 

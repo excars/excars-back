@@ -8,7 +8,7 @@ from excars.models.user import User
 
 async def handle(message: Message, user: User, redis_cli: Redis):
     if message.type == MessageType.location:
-        await receive_location(Location.parse_raw(message.data), user, redis_cli)
+        await receive_location(Location(**message.data), user, redis_cli)
 
 
 async def receive_location(location: Location, user: User, redis_cli: Redis):
