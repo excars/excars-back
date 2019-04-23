@@ -6,6 +6,12 @@ from pydantic import BaseModel
 from .profiles import Role
 
 
+class Location(BaseModel):
+    latitude: Decimal
+    longitude: Decimal
+    course: Decimal
+
+
 class UserLocation(BaseModel):
     user_id: int
     latitude: Decimal
