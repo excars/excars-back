@@ -2,7 +2,6 @@
 import random
 
 import pytest
-from starlette.testclient import TestClient
 
 from excars.main import app
 
@@ -37,7 +36,24 @@ def make_token_headers(mocker, faker, make_token_payload):
 
 
 @pytest.fixture
-def client():
+def client(mocker):
+    import asyncio
+
+    from starlette.testclient import TestClient, WebSocketTestSession
+
+    class WebSocketTestSessionMonkeyPatch(WebSocketTestSession):
+        __loop = asyncio.get_event_loop()
+
+        @property
+        def _loop(self):
+            return self.__loop
+
+        @_loop.setter
+        def _loop(self, value):  # pylint: disable=no-self-use
+            value.stop()
+            value.close()
+
+    mocker.patch("starlette.testclient.WebSocketTestSession", WebSocketTestSessionMonkeyPatch)
     return TestClient(app)
 
 

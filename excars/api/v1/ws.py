@@ -1,4 +1,3 @@
-import asyncio
 from asyncio import Task
 from typing import List
 
@@ -26,9 +25,6 @@ class Stream(WebSocketEndpoint):
             await websocket.accept()
             redis_cli = websocket.app.redis_cli
             self.tasks = senders.init(websocket, user, redis_cli)
-
-    async def on_receive(self, websocket, data):
-        await asyncio.sleep(5)
 
     async def on_disconnect(self, websocket: WebSocket, close_code: int) -> None:
         [task.cancel() for task in self.tasks]  # pylint: disable=expression-not-assigned
