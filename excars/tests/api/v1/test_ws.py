@@ -3,12 +3,20 @@
 import asyncio
 
 import pytest
+from starlette.websockets import WebSocketDisconnect
 
 from excars import repositories
 from excars.models.locations import Location, MapItem
 from excars.models.messages import MessageType
 from excars.models.profiles import Role
 from excars.models.rides import RideRequest, RideRequestStatus
+
+
+def test_ws_close_for_unauthorized_user(client):
+    with pytest.raises(WebSocketDisconnect):
+        with client as cli, cli.websocket_connect("/api/v1/ws") as ws:
+            data = ws.receive_json()
+            assert data == {"type": MessageType.map, "data": []}
 
 
 def test_ws_receive_empty_map(client, make_token_headers):
@@ -18,7 +26,7 @@ def test_ws_receive_empty_map(client, make_token_headers):
 
 
 @pytest.mark.parametrize("role", [Role.driver, Role.hitchhiker])
-def test_ws_send_map_for_user_without_ride(client, faker, profile_factory, make_token_headers, role):
+def test_ws_receive_map_for_user_without_ride(client, faker, profile_factory, make_token_headers, role):
     latitude = float(faker.latitude())
     longitude = float(faker.longitude())
     profile1 = profile_factory(role=role)
@@ -45,7 +53,7 @@ def test_ws_send_map_for_user_without_ride(client, faker, profile_factory, make_
 
 
 @pytest.mark.parametrize("role", [Role.driver, Role.hitchhiker])
-def test_ws_send_map_for_user_without_ride_and_profile(client, faker, profile_factory, make_token_headers, role):
+def test_ws_receive_map_for_user_without_ride_and_profile(client, faker, profile_factory, make_token_headers, role):
     latitude = float(faker.latitude())
     longitude = float(faker.longitude())
     profile1 = profile_factory(role=role)
@@ -70,7 +78,7 @@ def test_ws_send_map_for_user_without_ride_and_profile(client, faker, profile_fa
             assert map_item.has_same_ride is False
 
 
-def test_ws_send_map_filter_location_without_profile(client, faker, make_token_headers):
+def test_ws_receive_map_filter_location_without_profile(client, faker, make_token_headers):
     latitude = float(faker.latitude())
     longitude = float(faker.longitude())
     location1 = Location(latitude=latitude, longitude=longitude, course=faker.coordinate())
@@ -88,7 +96,7 @@ def test_ws_send_map_filter_location_without_profile(client, faker, make_token_h
 
 
 @pytest.mark.parametrize("role", [Role.driver, Role.hitchhiker])
-def test_ws_send_map_within_same_ride(client, faker, profile_factory, make_token_headers, role):
+def test_ws_receive_map_within_same_ride(client, faker, profile_factory, make_token_headers, role):
     latitude = float(faker.latitude())
     longitude = float(faker.longitude())
     profile1 = profile_factory(role=role)
@@ -113,3 +121,52 @@ def test_ws_send_map_within_same_ride(client, faker, profile_factory, make_token
             assert map_item.location.latitude == location1.latitude
             assert map_item.location.longitude == location1.longitude
             assert map_item.has_same_ride is True
+
+
+@pytest.mark.parametrize("role", [Role.driver, Role.hitchhiker])
+def test_ws_receive_map_within_different_ride(client, faker, profile_factory, make_token_headers, role):
+    latitude = float(faker.latitude())
+    longitude = float(faker.longitude())
+    profile1 = profile_factory(role=role)
+    profile2 = profile_factory(role=Role.opposite(role))
+    location1 = Location(latitude=latitude, longitude=longitude, course=faker.coordinate())
+    location2 = Location(latitude=latitude + 0.1, longitude=longitude + 0.1, course=faker.coordinate())
+    ride_request = RideRequest(
+        sender=profile_factory(role=Role.opposite(profile2.role)), receiver=profile2, status=RideRequestStatus.accepted
+    )
+
+    with client as cli:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(repositories.profile.save(cli.app.redis_cli, profile1))
+        loop.run_until_complete(repositories.profile.save(cli.app.redis_cli, profile2))
+        loop.run_until_complete(repositories.locations.save_for(cli.app.redis_cli, profile1.user_id, location1))
+        loop.run_until_complete(repositories.locations.save_for(cli.app.redis_cli, profile2.user_id, location2))
+        loop.run_until_complete(repositories.rides.update_request(cli.app.redis_cli, ride_request))
+        with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(profile1.user_id)) as ws:
+            message = ws.receive_json()
+            assert message == {"type": MessageType.map, "data": []}
+
+
+def test_ws_send_location(client, profile_factory, make_token_headers):
+    profile = profile_factory(role=Role.driver)
+
+    with client as cli:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(repositories.profile.save(cli.app.redis_cli, profile))
+
+        with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(profile.user_id)) as ws:
+            ws.send_json({"type": MessageType.location, "data": {"longitude": 1, "latitude": 1, "course": -1}})
+
+
+def test_ws_send_invalid_data(client, profile_factory, make_token_headers):
+    profile = profile_factory(role=Role.driver)
+
+    with client as cli:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(repositories.profile.save(cli.app.redis_cli, profile))
+
+        with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(profile.user_id)) as ws:
+            ws.send_json({"type": MessageType.location, "data": {"longitude": 1}})
+            message = ws.receive_json()
+            assert message["type"] == MessageType.error
+            assert isinstance(message["data"], list)

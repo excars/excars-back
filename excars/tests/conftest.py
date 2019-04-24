@@ -33,7 +33,7 @@ def make_token_headers(mocker, faker, make_token_payload):
     return token_headers_for
 
 
-@pytest.fixture
+@pytest.yield_fixture
 def client(mocker):
     import asyncio
 
@@ -55,10 +55,11 @@ def client(mocker):
 
     mocker.patch("starlette.testclient.WebSocketTestSession", WebSocketTestSessionMonkeyPatch)
 
-    yield TestClient(app)
-
-    with TestClient(app) as cli:
-        asyncio.get_event_loop().run_until_complete(cli.app.redis_cli.flushdb())
+    try:
+        yield TestClient(app)
+    finally:
+        with TestClient(app) as cli:
+            asyncio.get_event_loop().run_until_complete(cli.app.redis_cli.flushdb())
 
 
 @pytest.fixture

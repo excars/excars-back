@@ -16,6 +16,8 @@ class MessageType(str, Enum):
     socket_close = "_WEBSOCKET_CLOSE"
     socket_open = "_WEBSOCKET_OPEN"
 
+    error = "ERROR"
+
 
 class Message(BaseModel):
     type: MessageType
