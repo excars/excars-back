@@ -28,7 +28,7 @@ async def _prepare_map(user_id: int, locations: List[UserLocation], redis_cli: R
 
     map_items = []
     for location in locations:
-        if location.user_id == str(user_id):
+        if location.user_id == user_id:
             continue
 
         profile = await repositories.profile.get(redis_cli, location.user_id)

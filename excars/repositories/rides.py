@@ -71,7 +71,7 @@ async def get(redis_cli: Redis, ride_id: int) -> Ride:
 
 async def get_ride_id(redis_cli: Redis, user_id: int) -> Optional[int]:
     async for key in redis_cli.iscan(match=f"ride:*:passenger:{user_id}"):
-        return key.decode().split(":")[1]
+        return int(key.decode().split(":")[1])
 
     async for _ in redis_cli.iscan(match=f"ride:{user_id}:passenger:*"):  # noqa
         return int(user_id)
