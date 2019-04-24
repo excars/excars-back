@@ -3,8 +3,6 @@ import random
 
 import pytest
 
-from excars.main import app
-
 
 @pytest.fixture
 def make_token_payload(faker):
@@ -41,6 +39,8 @@ def client(mocker):
 
     from starlette.testclient import TestClient, WebSocketTestSession
 
+    from excars.main import app
+
     class WebSocketTestSessionMonkeyPatch(WebSocketTestSession):
         __loop = asyncio.get_event_loop()
 
@@ -54,7 +54,11 @@ def client(mocker):
             value.close()
 
     mocker.patch("starlette.testclient.WebSocketTestSession", WebSocketTestSessionMonkeyPatch)
-    return TestClient(app)
+
+    yield TestClient(app)
+
+    with TestClient(app) as cli:
+        asyncio.get_event_loop().run_until_complete(cli.app.redis_cli.flushdb())
 
 
 @pytest.fixture
