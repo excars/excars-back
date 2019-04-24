@@ -29,15 +29,13 @@ def test_ws_receive_empty_map(client, make_token_headers):
 def test_ws_receive_map_for_user_without_ride(client, faker, profile_factory, make_token_headers, role):
     latitude = float(faker.latitude())
     longitude = float(faker.longitude())
-    profile1 = profile_factory(role=role)
-    profile2 = profile_factory(role=Role.opposite(role))
+    profile1 = profile_factory(role=role, save=True)
+    profile2 = profile_factory(role=Role.opposite(role), save=True)
     location1 = Location(latitude=latitude, longitude=longitude, course=faker.coordinate())
     location2 = Location(latitude=latitude + 0.1, longitude=longitude + 0.1, course=faker.coordinate())
 
     with client as cli:
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(repositories.profile.save(cli.app.redis_cli, profile1))
-        loop.run_until_complete(repositories.profile.save(cli.app.redis_cli, profile2))
         loop.run_until_complete(repositories.locations.save_for(cli.app.redis_cli, profile1.user_id, location1))
         loop.run_until_complete(repositories.locations.save_for(cli.app.redis_cli, profile2.user_id, location2))
 
@@ -56,14 +54,13 @@ def test_ws_receive_map_for_user_without_ride(client, faker, profile_factory, ma
 def test_ws_receive_map_for_user_without_ride_and_profile(client, faker, profile_factory, make_token_headers, role):
     latitude = float(faker.latitude())
     longitude = float(faker.longitude())
-    profile1 = profile_factory(role=role)
+    profile1 = profile_factory(role=role, save=True)
     location1 = Location(latitude=latitude, longitude=longitude, course=faker.coordinate())
     location2 = Location(latitude=latitude + 0.1, longitude=longitude + 0.1, course=faker.coordinate())
     curr_user_id = faker.pyint()
 
     with client as cli:
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(repositories.profile.save(cli.app.redis_cli, profile1))
         loop.run_until_complete(repositories.locations.save_for(cli.app.redis_cli, profile1.user_id, location1))
         loop.run_until_complete(repositories.locations.save_for(cli.app.redis_cli, curr_user_id, location2))
 
@@ -99,16 +96,14 @@ def test_ws_receive_map_filter_location_without_profile(client, faker, make_toke
 def test_ws_receive_map_within_same_ride(client, faker, profile_factory, make_token_headers, role):
     latitude = float(faker.latitude())
     longitude = float(faker.longitude())
-    profile1 = profile_factory(role=role)
-    profile2 = profile_factory(role=Role.opposite(role))
+    profile1 = profile_factory(role=role, save=True)
+    profile2 = profile_factory(role=Role.opposite(role), save=True)
     location1 = Location(latitude=latitude, longitude=longitude, course=faker.coordinate())
     location2 = Location(latitude=latitude + 0.1, longitude=longitude + 0.1, course=faker.coordinate())
     ride_request = RideRequest(sender=profile1, receiver=profile2, status=RideRequestStatus.accepted)
 
     with client as cli:
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(repositories.profile.save(cli.app.redis_cli, profile1))
-        loop.run_until_complete(repositories.profile.save(cli.app.redis_cli, profile2))
         loop.run_until_complete(repositories.locations.save_for(cli.app.redis_cli, profile1.user_id, location1))
         loop.run_until_complete(repositories.locations.save_for(cli.app.redis_cli, profile2.user_id, location2))
         loop.run_until_complete(repositories.rides.update_request(cli.app.redis_cli, ride_request))
@@ -127,8 +122,8 @@ def test_ws_receive_map_within_same_ride(client, faker, profile_factory, make_to
 def test_ws_receive_map_within_different_ride(client, faker, profile_factory, make_token_headers, role):
     latitude = float(faker.latitude())
     longitude = float(faker.longitude())
-    profile1 = profile_factory(role=role)
-    profile2 = profile_factory(role=Role.opposite(role))
+    profile1 = profile_factory(role=role, save=True)
+    profile2 = profile_factory(role=Role.opposite(role), save=True)
     location1 = Location(latitude=latitude, longitude=longitude, course=faker.coordinate())
     location2 = Location(latitude=latitude + 0.1, longitude=longitude + 0.1, course=faker.coordinate())
     ride_request = RideRequest(
@@ -137,8 +132,6 @@ def test_ws_receive_map_within_different_ride(client, faker, profile_factory, ma
 
     with client as cli:
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(repositories.profile.save(cli.app.redis_cli, profile1))
-        loop.run_until_complete(repositories.profile.save(cli.app.redis_cli, profile2))
         loop.run_until_complete(repositories.locations.save_for(cli.app.redis_cli, profile1.user_id, location1))
         loop.run_until_complete(repositories.locations.save_for(cli.app.redis_cli, profile2.user_id, location2))
         loop.run_until_complete(repositories.rides.update_request(cli.app.redis_cli, ride_request))
@@ -148,23 +141,17 @@ def test_ws_receive_map_within_different_ride(client, faker, profile_factory, ma
 
 
 def test_ws_send_location(client, profile_factory, make_token_headers):
-    profile = profile_factory(role=Role.driver)
+    profile = profile_factory(role=Role.driver, save=True)
 
     with client as cli:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(repositories.profile.save(cli.app.redis_cli, profile))
-
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(profile.user_id)) as ws:
             ws.send_json({"type": MessageType.location, "data": {"longitude": 1, "latitude": 1, "course": -1}})
 
 
 def test_ws_send_invalid_data(client, profile_factory, make_token_headers):
-    profile = profile_factory(role=Role.driver)
+    profile = profile_factory(role=Role.driver, save=True)
 
     with client as cli:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(repositories.profile.save(cli.app.redis_cli, profile))
-
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(profile.user_id)) as ws:
             ws.send_json({"type": MessageType.location, "data": {"longitude": 1}})
             message = ws.receive_json()

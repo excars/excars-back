@@ -1,7 +1,5 @@
-import asyncio
 import random
 
-from excars import repositories
 from excars.models.profiles import Profile, Role
 
 
@@ -26,11 +24,9 @@ def test_join(client, faker, make_token_headers):
 
 
 def test_get_profile(client, profile_factory, make_token_headers):
-    profile = profile_factory()
+    profile = profile_factory(save=True)
 
     with client as cli:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(repositories.profile.save(cli.app.redis_cli, profile))
         response = cli.get(f"/api/v1/profiles/{profile.user_id}", headers=make_token_headers())
 
     assert response.status_code == 200

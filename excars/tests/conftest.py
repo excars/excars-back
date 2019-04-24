@@ -41,6 +41,7 @@ def client(mocker):
 
     from excars.main import app
 
+    # See https://github.com/encode/starlette/issues/487
     class WebSocketTestSessionMonkeyPatch(WebSocketTestSession):
         __loop = asyncio.get_event_loop()
 
@@ -63,8 +64,8 @@ def client(mocker):
 
 
 @pytest.fixture
-def profile_factory(faker):
-    def profile(**kwargs):
+def profile_factory(client, faker):
+    def make_profile(*, save: bool = False, **kwargs):
         from excars.models.profiles import Profile, Role
 
         defaults = {
@@ -75,6 +76,16 @@ def profile_factory(faker):
             "destination": {"name": faker.name(), "latitude": faker.latitude(), "longitude": faker.longitude()},
         }
         defaults.update(kwargs)
-        return Profile(**defaults)
+        profile = Profile(**defaults)
 
-    return profile
+        if save is True:
+            import asyncio
+            from excars import repositories
+
+            loop = asyncio.get_event_loop()
+            with client as cli:
+                loop.run_until_complete(repositories.profile.save(cli.app.redis_cli, profile))
+
+        return profile
+
+    return make_profile
