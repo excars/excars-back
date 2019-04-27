@@ -30,12 +30,16 @@ def init(websocket: WebSocket, user: User, redis_cli: Redis) -> Task:
             )
             for stream_message in messages:
                 message = Message.parse_raw(decode(stream_message[2])["message"])
+
                 if message.type in [
                     MessageType.ride_requested,
                     MessageType.ride_request_accepted,
                     MessageType.ride_request_declined,
+                    MessageType.ride_updated,
+                    MessageType.ride_cancelled,
                 ]:
                     await websocket.send_text(message.json())
+
             await asyncio.sleep(config.READ_STREAM_FREQUENCY)
 
     return asyncio.create_task(init_stream())

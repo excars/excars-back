@@ -1,4 +1,5 @@
 import asyncio
+import time
 from typing import Any, Dict
 
 import pytest
@@ -128,7 +129,7 @@ def test_ws_send_invalid_data(client, profile_factory, make_token_headers):
             assert isinstance(message["data"], list)
 
 
-def test_ws_send_ride_requested(client, profile_factory, make_token_headers):
+def test_ws_receive_ride_requested(client, profile_factory, make_token_headers):
     ride_request = RideRequest(
         sender=profile_factory(role=Role.driver, save=True),
         receiver=profile_factory(role=Role.hitchhiker, save=True),
@@ -152,7 +153,7 @@ def test_ws_send_ride_requested(client, profile_factory, make_token_headers):
         (RideRequestStatus.declined, MessageType.ride_request_declined),
     ],
 )
-def test_ws_send_ride_request_updated(client, profile_factory, make_token_headers, status, expected):
+def test_ws_receive_ride_request_updated(client, profile_factory, make_token_headers, status, expected):
     ride_request = RideRequest(
         sender=profile_factory(role=Role.driver, save=True),
         receiver=profile_factory(role=Role.hitchhiker, save=True),
@@ -167,3 +168,27 @@ def test_ws_send_ride_request_updated(client, profile_factory, make_token_header
             ws.receive_json()
             message = ws.receive_json()
             assert message["type"] == expected
+
+
+def test_ws_ride_updated(client, profile_factory, make_token_headers):
+    ride_request = RideRequest(
+        sender=profile_factory(role=Role.driver, save=True),
+        receiver=profile_factory(role=Role.hitchhiker, save=True),
+        status=RideRequestStatus.accepted,
+    )
+
+    with client as cli:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(repositories.rides.update_request(cli.app.redis_cli, ride_request))
+        ride_id = loop.run_until_complete(
+            repositories.rides.get_ride_id(cli.app.redis_cli, ride_request.sender.user_id)
+        )
+        ride = loop.run_until_complete(repositories.rides.get(cli.app.redis_cli, ride_id))
+
+        with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.sender.user_id)) as ws:
+            time.sleep(0.1)
+            loop.create_task(repositories.stream.ride_updated(cli.app.redis_cli, ride))
+            ws.receive_json()
+            ws.receive_json()
+            message = ws.receive_json()
+            assert message["type"] == MessageType.ride_updated

@@ -83,4 +83,7 @@ async def update_ride_request(
     await repositories.rides.update_request(redis_cli, ride_request)
     await repositories.stream.request_updated(redis_cli, ride_request)
 
+    ride = await repositories.rides.get(redis_cli, ride_request.ride_uid)
+    await repositories.stream.ride_updated(redis_cli, ride)
+
     return ride_request
