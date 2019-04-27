@@ -126,3 +126,20 @@ def test_ws_send_invalid_data(client, profile_factory, make_token_headers):
             message = ws.receive_json()
             assert message["type"] == MessageType.error
             assert isinstance(message["data"], list)
+
+
+def test_ws_send_ride_request(client, profile_factory, make_token_headers):
+    ride_request = RideRequest(
+        sender=profile_factory(role=Role.driver, save=True),
+        receiver=profile_factory(role=Role.hitchhiker, save=True),
+        status=RideRequestStatus.accepted,
+    )
+
+    with client as cli:
+        with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.receiver.user_id)) as ws:
+            loop = asyncio.get_event_loop()
+            loop.create_task(repositories.stream.ride_requested(cli.app.redis_cli, ride_request))
+            ws.receive_json()
+            ws.receive_json()
+            message = ws.receive_json()
+            assert message["type"] == MessageType.ride_requested
