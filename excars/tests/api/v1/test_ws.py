@@ -128,11 +128,11 @@ def test_ws_send_invalid_data(client, profile_factory, make_token_headers):
             assert isinstance(message["data"], list)
 
 
-def test_ws_send_ride_request(client, profile_factory, make_token_headers):
+def test_ws_send_ride_requested(client, profile_factory, make_token_headers):
     ride_request = RideRequest(
         sender=profile_factory(role=Role.driver, save=True),
         receiver=profile_factory(role=Role.hitchhiker, save=True),
-        status=RideRequestStatus.accepted,
+        status=RideRequestStatus.requested,
     )
 
     with client as cli:
@@ -143,3 +143,27 @@ def test_ws_send_ride_request(client, profile_factory, make_token_headers):
             ws.receive_json()
             message = ws.receive_json()
             assert message["type"] == MessageType.ride_requested
+
+
+@pytest.mark.parametrize(
+    "status,expected",
+    [
+        (RideRequestStatus.accepted, MessageType.ride_request_accepted),
+        (RideRequestStatus.declined, MessageType.ride_request_declined),
+    ],
+)
+def test_ws_send_ride_request_updated(client, profile_factory, make_token_headers, status, expected):
+    ride_request = RideRequest(
+        sender=profile_factory(role=Role.driver, save=True),
+        receiver=profile_factory(role=Role.hitchhiker, save=True),
+        status=status,
+    )
+
+    with client as cli:
+        with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.sender.user_id)) as ws:
+            loop = asyncio.get_event_loop()
+            loop.create_task(repositories.stream.request_updated(cli.app.redis_cli, ride_request))
+            ws.receive_json()
+            ws.receive_json()
+            message = ws.receive_json()
+            assert message["type"] == expected

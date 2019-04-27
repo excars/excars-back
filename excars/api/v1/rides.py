@@ -29,6 +29,7 @@ async def create_ride_request(
 
     ride_request = RideRequest(sender=sender, receiver=receiver, status=RideRequestStatus.requested)
     await repositories.rides.create_request(redis_cli, ride_request)
+    await repositories.stream.ride_requested(redis_cli, ride_request)
 
     return ride_request
 
@@ -80,5 +81,6 @@ async def update_ride_request(
         raise HTTPException(status_code=404, detail="Ride request not found.")
 
     await repositories.rides.update_request(redis_cli, ride_request)
+    await repositories.stream.request_updated(redis_cli, ride_request)
 
     return ride_request
