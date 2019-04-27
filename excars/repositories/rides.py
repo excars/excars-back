@@ -32,23 +32,23 @@ async def request_exists(redis_cli: Redis, ride_request: RideRequest) -> bool:
     return bool(await redis_cli.exists(f"ride:{ride_request.ride_uid}:request:{ride_request.passenger.user_id}"))
 
 
-async def delete_or_exclude(redis_cli: Redis, profile: Profile) -> None:
+async def delete_or_exclude(redis_cli: Redis, profile: Profile, timeout: int = 0) -> None:
     if profile.role == Role.hitchhiker:
-        await _exclude(redis_cli, profile.user_id)
+        await _exclude(redis_cli, profile.user_id, timeout)
     elif profile.role == Role.driver:
-        await _delete(redis_cli, profile.user_id)
+        await _delete(redis_cli, profile.user_id, timeout)
 
 
-async def _delete(redis_cli: Redis, ride_uid: int) -> None:
-    ride = await get(redis_cli, ride_uid)
-    keys = [f"ride:{ride_uid}:passenger:{passenger.profile.user_id}" for passenger in ride.passengers]
-    await asyncio.gather(*[redis_cli.delete(key) for key in keys])
+async def _delete(redis_cli: Redis, ride_id: int, timeout: int) -> None:
+    ride = await get(redis_cli, ride_id)
+    keys = [f"ride:{ride_id}:passenger:{passenger.profile.user_id}" for passenger in ride.passengers]
+    await asyncio.gather(*[redis_cli.expire(key, timeout) for key in keys])
 
 
-async def _exclude(redis_cli: Redis, user_id: int) -> None:
-    ride_uid = await get_ride_id(redis_cli, user_id)
-    if ride_uid:
-        await redis_cli.delete(f"ride:{ride_uid}:passenger:{user_id}")
+async def _exclude(redis_cli: Redis, user_id: int, timeout: int) -> None:
+    ride_id = await get_ride_id(redis_cli, user_id)
+    if ride_id:
+        await redis_cli.expire(f"ride:{ride_id}:passenger:{user_id}", timeout)
 
 
 async def get(redis_cli: Redis, ride_id: int) -> Ride:
@@ -77,3 +77,9 @@ async def get_ride_id(redis_cli: Redis, user_id: int) -> Optional[int]:
         return int(user_id)
 
     return None
+
+
+async def persist(redis_cli: Redis, user_id: int) -> None:
+    ride_id = await get_ride_id(redis_cli, user_id)
+    keys = [key async for key in redis_cli.iscan(match=f"ride:{ride_id}:passenger:*")]
+    await asyncio.gather(*[redis_cli.persist(key) for key in keys])

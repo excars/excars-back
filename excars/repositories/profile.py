@@ -3,6 +3,7 @@ from typing import Optional, Union
 
 from aioredis import Redis
 
+from excars import config
 from excars.models.profiles import Profile
 
 
@@ -19,3 +20,11 @@ async def get(redis_cli: Redis, user_id: int) -> Optional[Profile]:
     if not data:
         return None
     return Profile(**json.loads(data))
+
+
+async def persist(redis_cli: Redis, user_id: int) -> None:
+    await redis_cli.persist(_get_key(user_id))
+
+
+async def expire(redis_cli: Redis, user_id: int) -> None:
+    await redis_cli.expire(_get_key(user_id), timeout=config.PROFILE_TTL)
