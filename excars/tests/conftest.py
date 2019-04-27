@@ -1,5 +1,7 @@
 # pylint: disable=redefined-outer-name
+import asyncio
 import random
+from typing import Optional
 
 import pytest
 
@@ -35,8 +37,6 @@ def make_token_headers(mocker, faker, make_token_payload):
 
 @pytest.yield_fixture
 def client(mocker):
-    import asyncio
-
     from starlette.testclient import TestClient, WebSocketTestSession
 
     from excars.main import app
@@ -79,7 +79,6 @@ def profile_factory(client, faker):
         profile = Profile(**defaults)
 
         if save is True:
-            import asyncio
             from excars import repositories
 
             loop = asyncio.get_event_loop()
@@ -89,3 +88,24 @@ def profile_factory(client, faker):
         return profile
 
     return make_profile
+
+
+@pytest.fixture
+def location_factory(client, faker):
+    latitude = float(faker.coordinate(center=50))  # latitude should be in -85..+85
+    longitude = float(faker.longitude())
+
+    def make_location(*, save: bool = False, user_id: Optional[int] = None):
+        from excars.models.locations import Location
+
+        location = Location(latitude=latitude + 0.1, longitude=longitude + 0.1, course=faker.coordinate())
+        if save is True:
+            loop = asyncio.get_event_loop()
+            user_id = user_id or faker.pyint()
+            with client as cli:
+                from excars import repositories
+
+                loop.run_until_complete(repositories.locations.save_for(cli.app.redis_cli, user_id, location))
+        return location
+
+    return make_location
