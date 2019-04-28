@@ -16,19 +16,8 @@ services:
     env_file:
     - ./secrets.env
     depends_on:
-      - db
       - redis
     command: /start-reload.sh
-
-  db:
-    restart: always
-    image: postgres:alpine
-    environment:
-      POSTGRES_DB: excars
-      POSTGRES_USER: excars
-      POSTGRES_PASSWORD: excars
-    expose:
-      - "5432"
 
   redis:
     restart: always

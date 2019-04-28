@@ -12,18 +12,15 @@ services:
 
 
 install:
-  - pip install codecov
-  - pip install coverage
+  - pip install codecov coverage pre-commit
 
 
 before_script:
   - docker run -d --name redis redis:5.0.3-alpine
-  - docker run -d --name postgres -e "POSTGRES_USER=excars" -e "POSTGRES_PASSWORD=excars" -e "POSTGRES_DB=excars" postgres:10.6-alpine
 
 script:
   - docker build . -t excars/excars-back
-  - docker run --rm --link redis:redis --link postgres:db --volume $(pwd):/excars-back excars/excars-back pre-commit run --all-files
-  - docker run --rm --link redis:redis --link postgres:db --volume $(pwd):/excars-back excars/excars-back pytest
+  - docker run --rm --link redis:redis --volume $(pwd):/excars-back excars/excars-back pytest; [ "$?" -eq 0 ] || exit $?
 
 after_success:
   - mv .coverage .coverage.travis
