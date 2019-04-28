@@ -8,8 +8,7 @@ RUN pip install pipenv
 COPY Pipfile /
 COPY Pipfile.lock /
 
-RUN apk add make \
-    && apk add --virtual .build-deps gcc libc-dev \
+RUN apk add --virtual .build-deps gcc libc-dev \
     && pipenv install --system --ignore-pipfile --deploy --dev \
     && pip install starlette==0.12.0.b3 \
     && apk del .build-deps gcc libc-dev

@@ -22,7 +22,8 @@ before_script:
 
 script:
   - docker build . -t excars/excars-back
-  - docker run --rm --link redis:redis --link postgres:db --volume $(pwd):/excars-back excars/excars-back make ci
+  - docker run --rm --link redis:redis --link postgres:db --volume $(pwd):/excars-back excars/excars-back pre-commit run --all-files
+  - docker run --rm --link redis:redis --link postgres:db --volume $(pwd):/excars-back excars/excars-back pytest
 
 after_success:
   - mv .coverage .coverage.travis
