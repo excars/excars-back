@@ -170,10 +170,11 @@ def test_ws_receive_ride_request_updated(client, profile_factory, make_token_hea
             assert message["type"] == expected
 
 
-def test_ws_ride_updated(client, profile_factory, make_token_headers):
+@pytest.mark.parametrize("role", [Role.driver, Role.hitchhiker])
+def test_ws_ride_updated(client, profile_factory, make_token_headers, role):
     ride_request = RideRequest(
-        sender=profile_factory(role=Role.driver, save=True),
-        receiver=profile_factory(role=Role.hitchhiker, save=True),
+        sender=profile_factory(role=role, save=True),
+        receiver=profile_factory(role=Role.opposite(role), save=True),
         status=RideRequestStatus.accepted,
     )
 
@@ -190,5 +191,28 @@ def test_ws_ride_updated(client, profile_factory, make_token_headers):
             loop.create_task(repositories.stream.ride_updated(cli.app.redis_cli, ride))
             ws.receive_json()
             ws.receive_json()
+            assert ws.receive_json()["type"] == MessageType.ride_updated
+
+
+def test_ws_ride_cancelled(client, profile_factory, make_token_headers):
+    ride_request = RideRequest(
+        sender=profile_factory(role=Role.driver, save=True),
+        receiver=profile_factory(role=Role.hitchhiker, save=True),
+        status=RideRequestStatus.accepted,
+    )
+
+    with client as cli:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(repositories.rides.update_request(cli.app.redis_cli, ride_request))
+        ride_id = loop.run_until_complete(
+            repositories.rides.get_ride_id(cli.app.redis_cli, ride_request.sender.user_id)
+        )
+        ride = loop.run_until_complete(repositories.rides.get(cli.app.redis_cli, ride_id))
+
+        with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.receiver.user_id)) as ws:
+            time.sleep(0.1)
+            loop.create_task(repositories.stream.ride_cancelled(cli.app.redis_cli, ride))
+            ws.receive_json()
+            ws.receive_json()
             message = ws.receive_json()
-            assert message["type"] == MessageType.ride_updated
+            assert message["type"] == MessageType.ride_cancelled

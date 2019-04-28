@@ -34,3 +34,9 @@ async def ride_updated(redis_cli: Redis, ride: Ride) -> None:
     user_ids.append(ride.driver.user_id)
     message = Message(type=MessageType.ride_updated, data=ride)
     await _broadcast(redis_cli, user_ids=user_ids, message=message)
+
+
+async def ride_cancelled(redis_cli: Redis, ride: Ride) -> None:
+    user_ids = [passenger.profile.user_id for passenger in ride.passengers]
+    message = Message(type=MessageType.ride_cancelled, data=ride)
+    await _broadcast(redis_cli, user_ids=user_ids, message=message)
