@@ -24,7 +24,7 @@ def test_join(client, faker, make_token_headers):
 
 
 def test_get_profile(client, profile_factory, make_token_headers):
-    profile = profile_factory(save=True)
+    profile = profile_factory()
 
     with client as cli:
         response = cli.get(f"/api/v1/profiles/{profile.user_id}", headers=make_token_headers())

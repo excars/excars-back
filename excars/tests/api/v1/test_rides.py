@@ -8,8 +8,8 @@ from excars.models.rides import Ride, RideRequest, RideRequestStatus
 
 
 def test_create_ride_request(client, profile_factory, make_token_headers):
-    receiver = profile_factory(save=True)
-    sender = profile_factory(role=Role.opposite(receiver.role), save=True)
+    receiver = profile_factory()
+    sender = profile_factory(role=Role.opposite(receiver.role))
 
     with client as cli:
         headers = make_token_headers(sender.user_id)
@@ -37,8 +37,8 @@ def test_create_ride_request_when_sender_is_not_joined(client, profile_factory, 
 
 @pytest.mark.parametrize("role", [Role.driver, Role.hitchhiker])
 def test_update_ride(client, profile_factory, make_token_headers, role):
-    receiver = profile_factory(role=role, save=True)
-    sender = profile_factory(role=Role.opposite(receiver.role), save=True)
+    receiver = profile_factory(role=role)
+    sender = profile_factory(role=Role.opposite(receiver.role))
     ride_request = RideRequest(sender=sender, receiver=receiver, status=RideRequestStatus.requested)
 
     with client as cli:
@@ -67,7 +67,7 @@ def test_update_ride_receiver_not_found(client, faker, make_token_headers):
 
 
 def test_update_ride_sender_not_found(client, faker, profile_factory, make_token_headers):
-    receiver = profile_factory(role=Role.hitchhiker, save=True)
+    receiver = profile_factory(role=Role.hitchhiker)
     with client as cli:
         headers = make_token_headers(receiver.user_id)
         response = cli.put(
@@ -81,8 +81,8 @@ def test_update_ride_sender_not_found(client, faker, profile_factory, make_token
 
 
 def test_update_ride_ride_request_not_found(client, profile_factory, make_token_headers):
-    receiver = profile_factory(role=Role.hitchhiker, save=True)
-    sender = profile_factory(role=Role.opposite(receiver.role), save=True)
+    receiver = profile_factory(role=Role.hitchhiker)
+    sender = profile_factory(role=Role.opposite(receiver.role))
     with client as cli:
         headers = make_token_headers(receiver.user_id)
         response = cli.put(
@@ -97,8 +97,8 @@ def test_update_ride_ride_request_not_found(client, profile_factory, make_token_
 
 @pytest.mark.parametrize("role", [Role.driver, Role.hitchhiker])
 def test_leaves_ride(client, profile_factory, make_token_headers, role):
-    sender = profile_factory(role=role, save=True)
-    receiver = profile_factory(role=Role.opposite(role), save=True)
+    sender = profile_factory(role=role)
+    receiver = profile_factory(role=Role.opposite(role))
     ride_request = RideRequest(sender=sender, receiver=receiver, status=RideRequestStatus.accepted)
     with client as cli:
         loop = asyncio.get_event_loop()
@@ -110,7 +110,7 @@ def test_leaves_ride(client, profile_factory, make_token_headers, role):
 
 @pytest.mark.parametrize("role", [Role.driver, Role.hitchhiker])
 def test_leaves_ride_when_no_ride_exists(client, profile_factory, make_token_headers, role):
-    profile = profile_factory(role=role, save=True)
+    profile = profile_factory(role=role)
     with client as cli:
         response = cli.delete("/api/v1/rides", headers=make_token_headers(profile.user_id))
         assert response.status_code == 204
@@ -125,8 +125,8 @@ def test_leave_ride_raises_404(client, make_token_headers):
 
 @pytest.mark.parametrize("role", [Role.driver, Role.hitchhiker])
 def test_get_current_ride(client, profile_factory, make_token_headers, role):
-    sender = profile_factory(role=role, save=True)
-    receiver = profile_factory(role=Role.opposite(role), save=True)
+    sender = profile_factory(role=role)
+    receiver = profile_factory(role=Role.opposite(role))
     ride_request = RideRequest(sender=sender, receiver=receiver, status=RideRequestStatus.accepted)
     with client as cli:
         loop = asyncio.get_event_loop()
@@ -139,7 +139,7 @@ def test_get_current_ride(client, profile_factory, make_token_headers, role):
 
 @pytest.mark.parametrize("role", [Role.driver, Role.hitchhiker])
 def test_get_current_ride_404(client, profile_factory, make_token_headers, role):
-    profile = profile_factory(role=role, save=True)
+    profile = profile_factory(role=role)
     with client as cli:
         response = cli.get("/api/v1/rides/current", headers=make_token_headers(profile.user_id))
     assert response.status_code == 404

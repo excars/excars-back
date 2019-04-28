@@ -65,7 +65,7 @@ def client(mocker):
 
 @pytest.fixture
 def profile_factory(client, faker):
-    def make_profile(*, save: bool = False, **kwargs):
+    def make_profile(**kwargs):
         from excars.models.profiles import Profile, Role
 
         defaults = {
@@ -78,12 +78,11 @@ def profile_factory(client, faker):
         defaults.update(kwargs)
         profile = Profile(**defaults)
 
-        if save is True:
-            from excars import repositories
+        from excars import repositories
 
-            loop = asyncio.get_event_loop()
-            with client as cli:
-                loop.run_until_complete(repositories.profile.save(cli.app.redis_cli, profile))
+        loop = asyncio.get_event_loop()
+        with client as cli:
+            loop.run_until_complete(repositories.profile.save(cli.app.redis_cli, profile))
 
         return profile
 
@@ -95,17 +94,18 @@ def location_factory(client, faker):
     latitude = float(faker.coordinate(center=50))  # latitude should be in -85..+85
     longitude = float(faker.longitude())
 
-    def make_location(*, save: bool = False, user_id: Optional[int] = None):
+    def make_location(*, user_id: Optional[int] = None):
         from excars.models.locations import Location
 
         location = Location(latitude=latitude + 0.1, longitude=longitude + 0.1, course=faker.coordinate())
-        if save is True:
-            loop = asyncio.get_event_loop()
-            user_id = user_id or faker.pyint()
-            with client as cli:
-                from excars import repositories
 
-                loop.run_until_complete(repositories.locations.save_for(cli.app.redis_cli, user_id, location))
+        loop = asyncio.get_event_loop()
+        user_id = user_id or faker.pyint()
+        with client as cli:
+            from excars import repositories
+
+            loop.run_until_complete(repositories.locations.save_for(cli.app.redis_cli, user_id, location))
+
         return location
 
     return make_location

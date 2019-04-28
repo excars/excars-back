@@ -2,3 +2,7 @@
 source =
     .
     /excars-back/
+
+[run]
+omit =
+    excars/oauth2_redirect.py

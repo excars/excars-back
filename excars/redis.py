@@ -13,7 +13,3 @@ async def setup():
 async def stop(redis_cli: Redis):
     redis_cli.close()
     await redis_cli.wait_closed()
-
-
-def decode(data):
-    return {k.decode(): v.decode() for k, v in data.items()}

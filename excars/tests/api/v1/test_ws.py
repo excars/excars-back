@@ -25,8 +25,7 @@ def assert_map_item(message: Dict[str, Any], user_id: int, location: Location, h
 def test_ws_close_for_unauthorized_user(client):
     with pytest.raises(WebSocketDisconnect):
         with client as cli, cli.websocket_connect("/api/v1/ws") as ws:
-            data = ws.receive_json()
-            assert data == {"type": MessageType.map, "data": []}
+            ws.receive_json()
 
 
 def test_ws_receive_empty_map(client, make_token_headers):
@@ -37,11 +36,11 @@ def test_ws_receive_empty_map(client, make_token_headers):
 
 @pytest.mark.parametrize("role", [Role.driver, Role.hitchhiker])
 def test_ws_receive_map_for_user_without_ride(client, location_factory, profile_factory, make_token_headers, role):
-    sender = profile_factory(role=role, save=True)
-    location = location_factory(user_id=sender.user_id, save=True)
+    sender = profile_factory(role=role)
+    location = location_factory(user_id=sender.user_id)
 
-    receiver = profile_factory(role=Role.opposite(role), save=True)
-    location_factory(user_id=receiver.user_id, save=True)
+    receiver = profile_factory(role=Role.opposite(role))
+    location_factory(user_id=receiver.user_id)
 
     with client as cli:
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(receiver.user_id)) as ws:
@@ -50,11 +49,11 @@ def test_ws_receive_map_for_user_without_ride(client, location_factory, profile_
 
 @pytest.mark.parametrize("role", [Role.driver, Role.hitchhiker])
 def test_ws_receive_map_without_ride_and_profile(client, location_factory, profile_factory, make_token_headers, role):
-    sender = profile_factory(role=role, save=True)
-    location = location_factory(user_id=sender.user_id, save=True)
+    sender = profile_factory(role=role)
+    location = location_factory(user_id=sender.user_id)
 
     receiver_user_id = sender.user_id + 1
-    location_factory(user_id=receiver_user_id, save=True)
+    location_factory(user_id=receiver_user_id)
 
     with client as cli:
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(receiver_user_id)) as ws:
@@ -63,8 +62,8 @@ def test_ws_receive_map_without_ride_and_profile(client, location_factory, profi
 
 def test_ws_receive_no_map_without_profile(client, faker, location_factory, make_token_headers):
     receiver_user_id = faker.pyint()
-    location_factory(user_id=receiver_user_id, save=True)
-    location_factory(save=True)
+    location_factory(user_id=receiver_user_id)
+    location_factory()
 
     with client as cli:
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(receiver_user_id)) as ws:
@@ -75,12 +74,12 @@ def test_ws_receive_no_map_without_profile(client, faker, location_factory, make
 @pytest.mark.parametrize("role", [Role.driver, Role.hitchhiker])
 def test_ws_receive_map_within_same_ride(client, location_factory, profile_factory, make_token_headers, role):
     ride_request = RideRequest(
-        sender=profile_factory(role=role, save=True),
-        receiver=profile_factory(role=Role.opposite(role), save=True),
+        sender=profile_factory(role=role),
+        receiver=profile_factory(role=Role.opposite(role)),
         status=RideRequestStatus.accepted,
     )
-    location = location_factory(user_id=ride_request.sender.user_id, save=True)
-    location_factory(user_id=ride_request.receiver.user_id, save=True)
+    location = location_factory(user_id=ride_request.sender.user_id)
+    location_factory(user_id=ride_request.receiver.user_id)
 
     with client as cli:
         loop = asyncio.get_event_loop()
@@ -93,14 +92,14 @@ def test_ws_receive_map_within_same_ride(client, location_factory, profile_facto
 @pytest.mark.parametrize("role", [Role.driver, Role.hitchhiker])
 def test_ws_receive_map_within_different_ride(client, location_factory, profile_factory, make_token_headers, role):
     ride_request = RideRequest(
-        sender=profile_factory(role=role, save=True),
-        receiver=profile_factory(role=Role.opposite(role), save=True),
+        sender=profile_factory(role=role),
+        receiver=profile_factory(role=Role.opposite(role)),
         status=RideRequestStatus.accepted,
     )
-    location_factory(user_id=ride_request.receiver.user_id, save=True)
+    location_factory(user_id=ride_request.receiver.user_id)
 
-    receiver = profile_factory(role=role, save=True)
-    location_factory(user_id=receiver.user_id, save=True)
+    receiver = profile_factory(role=role)
+    location_factory(user_id=receiver.user_id)
 
     with client as cli:
         loop = asyncio.get_event_loop()
@@ -111,7 +110,7 @@ def test_ws_receive_map_within_different_ride(client, location_factory, profile_
 
 
 def test_ws_send_location(client, profile_factory, make_token_headers):
-    sender = profile_factory(role=Role.driver, save=True)
+    sender = profile_factory(role=Role.driver)
 
     with client as cli:
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(sender.user_id)) as ws:
@@ -119,7 +118,7 @@ def test_ws_send_location(client, profile_factory, make_token_headers):
 
 
 def test_ws_send_invalid_data(client, profile_factory, make_token_headers):
-    sender = profile_factory(role=Role.driver, save=True)
+    sender = profile_factory(role=Role.driver)
 
     with client as cli:
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(sender.user_id)) as ws:
@@ -131,8 +130,8 @@ def test_ws_send_invalid_data(client, profile_factory, make_token_headers):
 
 def test_ws_receive_ride_requested(client, profile_factory, make_token_headers):
     ride_request = RideRequest(
-        sender=profile_factory(role=Role.driver, save=True),
-        receiver=profile_factory(role=Role.hitchhiker, save=True),
+        sender=profile_factory(role=Role.driver),
+        receiver=profile_factory(role=Role.hitchhiker),
         status=RideRequestStatus.requested,
     )
 
@@ -155,9 +154,7 @@ def test_ws_receive_ride_requested(client, profile_factory, make_token_headers):
 )
 def test_ws_receive_ride_request_updated(client, profile_factory, make_token_headers, status, expected):
     ride_request = RideRequest(
-        sender=profile_factory(role=Role.driver, save=True),
-        receiver=profile_factory(role=Role.hitchhiker, save=True),
-        status=status,
+        sender=profile_factory(role=Role.driver), receiver=profile_factory(role=Role.hitchhiker), status=status
     )
 
     with client as cli:
@@ -173,8 +170,8 @@ def test_ws_receive_ride_request_updated(client, profile_factory, make_token_hea
 @pytest.mark.parametrize("role", [Role.driver, Role.hitchhiker])
 def test_ws_ride_updated(client, profile_factory, make_token_headers, role):
     ride_request = RideRequest(
-        sender=profile_factory(role=role, save=True),
-        receiver=profile_factory(role=Role.opposite(role), save=True),
+        sender=profile_factory(role=role),
+        receiver=profile_factory(role=Role.opposite(role)),
         status=RideRequestStatus.accepted,
     )
 
@@ -196,8 +193,8 @@ def test_ws_ride_updated(client, profile_factory, make_token_headers, role):
 
 def test_ws_ride_cancelled(client, profile_factory, make_token_headers):
     ride_request = RideRequest(
-        sender=profile_factory(role=Role.driver, save=True),
-        receiver=profile_factory(role=Role.hitchhiker, save=True),
+        sender=profile_factory(role=Role.driver),
+        receiver=profile_factory(role=Role.hitchhiker),
         status=RideRequestStatus.accepted,
     )
 
