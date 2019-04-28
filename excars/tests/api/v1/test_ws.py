@@ -213,3 +213,15 @@ def test_ws_ride_cancelled(client, profile_factory, make_token_headers):
             ws.receive_json()
             message = ws.receive_json()
             assert message["type"] == MessageType.ride_cancelled
+
+
+def test_ws_reconnect(client, profile_factory, make_token_headers):
+    receiver = profile_factory()
+    with client as cli:
+        with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(receiver.user_id)) as ws:
+            time.sleep(0.1)
+            ws.receive_json()
+
+        with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(receiver.user_id)) as ws:
+            time.sleep(0.1)
+            ws.receive_json()
