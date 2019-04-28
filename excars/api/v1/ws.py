@@ -21,7 +21,7 @@ router = APIRouter()
 class Stream(WebSocketEndpoint):
     encoding = "json"
     tasks: Optional[List[Task]] = None
-    user: Optional[User] = None
+    user: Optional[User] = None  # type: ignore
     redis_cli: Redis
 
     async def on_connect(self, websocket: WebSocket) -> None:
@@ -32,12 +32,14 @@ class Stream(WebSocketEndpoint):
         except HTTPException:
             await websocket.close()
         else:
+            assert self.user is not None
             self.tasks = senders.init(websocket, self.user, self.redis_cli)
             self.tasks.append(stream.init(websocket, self.user, self.redis_cli))
             asyncio.create_task(repositories.profile.persist(self.redis_cli, self.user.user_id))
             asyncio.create_task(repositories.rides.persist(self.redis_cli, self.user.user_id))
 
     async def on_receive(self, websocket: WebSocket, data) -> None:
+        assert self.user is not None
         try:
             message = Message(**data)
             await receivers.handle(message, self.user, self.redis_cli)
@@ -49,8 +51,9 @@ class Stream(WebSocketEndpoint):
             [task.cancel() for task in self.tasks]  # pylint: disable=expression-not-assigned
 
         if self.user is not None:
-            profile = await repositories.profile.get(self.redis_cli, self.user.user_id)
             asyncio.create_task(repositories.profile.expire(self.redis_cli, self.user.user_id))
-            asyncio.create_task(repositories.rides.delete_or_exclude(self.redis_cli, profile, config.PROFILE_TTL))
+            profile = await repositories.profile.get(self.redis_cli, self.user.user_id)
+            if profile is not None:
+                asyncio.create_task(repositories.rides.delete_or_exclude(self.redis_cli, profile, config.PROFILE_TTL))
 
         await super().on_disconnect(websocket, close_code)

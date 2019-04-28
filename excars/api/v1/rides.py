@@ -23,7 +23,7 @@ async def create_ride_request(
         raise HTTPException(status_code=404, detail="Receiver not found.")
 
     sender = await repositories.profile.get(redis_cli, user.user_id)
-    if not sender:
+    if sender is None:
         sender = Profile.from_user(user, role=Role.opposite(receiver.role), destination=receiver.destination)
         await repositories.profile.save(redis_cli, sender)
 

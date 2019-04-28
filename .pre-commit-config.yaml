@@ -23,6 +23,12 @@ repos:
         entry: python3 -m pylint
         language: system
         types: [python]
+      - id: mypy
+        name: mypy
+        entry: python3 -m mypy
+        args: ["--junit-xml", "test-reports/mypy-junit.xml"]
+        language: system
+        types: [python]
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.1.0
     hooks:
