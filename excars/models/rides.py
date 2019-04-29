@@ -18,7 +18,7 @@ class RideRequest(BaseModel):
     status: RideRequestStatus
 
     @property
-    def ride_uid(self) -> int:
+    def ride_id(self) -> str:
         return self.driver.user_id
 
     @property
@@ -38,12 +38,12 @@ class RideRequest(BaseModel):
 
 
 class RideRequestCreate(BaseModel):
-    receiver: int
+    receiver: str
 
 
 class RideRequestUpdate(BaseModel):
     status: RideRequestStatus
-    sender: int
+    sender: str
 
 
 class Passenger(BaseModel):
@@ -52,6 +52,6 @@ class Passenger(BaseModel):
 
 
 class Ride(BaseModel):
-    ride_id: int
+    ride_id: str
     driver: Profile
     passengers: List[Passenger]

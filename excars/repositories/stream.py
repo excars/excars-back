@@ -7,11 +7,11 @@ from excars.models.messages import Message, MessageType
 from excars.models.rides import Ride, RideRequest, RideRequestStatus
 
 
-async def _produce(redis_cli: Redis, user_id: int, message: Message) -> None:
+async def _produce(redis_cli: Redis, user_id: str, message: Message) -> None:
     await redis_cli.xadd(f"stream:{user_id}", fields={"message": message.json()})
 
 
-async def _broadcast(redis_cli: Redis, user_ids: List[int], message: Message) -> None:
+async def _broadcast(redis_cli: Redis, user_ids: List[str], message: Message) -> None:
     await asyncio.gather(*[_produce(redis_cli, user_id, message) for user_id in user_ids])
 
 

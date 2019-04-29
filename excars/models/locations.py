@@ -13,7 +13,7 @@ class Location(BaseModel):
 
 
 class UserLocation(BaseModel):
-    user_id: int
+    user_id: str
     latitude: Decimal
     longitude: Decimal
     course: Decimal
@@ -21,7 +21,7 @@ class UserLocation(BaseModel):
 
 
 class MapItem(BaseModel):
-    user_id: int
+    user_id: str
     role: Optional[Role]
     location: UserLocation
     has_same_ride: bool

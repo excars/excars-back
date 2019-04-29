@@ -1,4 +1,5 @@
 # pylint: disable=redefined-outer-name
+
 import asyncio
 import random
 from typing import Optional
@@ -101,7 +102,7 @@ def location_factory(client, faker):
     latitude = float(faker.coordinate(center=50))  # latitude should be in -85..+85
     longitude = float(faker.longitude())
 
-    def make_location(*, user_id: Optional[int] = None):
+    def make_location(*, user_id: Optional[str] = None):
         from excars.models.locations import Location
 
         location = Location(latitude=latitude + 0.1, longitude=longitude + 0.1, course=faker.coordinate())

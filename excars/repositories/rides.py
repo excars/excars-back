@@ -12,14 +12,14 @@ from . import profile as profile_repo
 
 async def create_request(redis_cli: Redis, ride_request: RideRequest) -> None:
     await redis_cli.setex(
-        f"ride:{ride_request.ride_uid}:request:{ride_request.passenger.user_id}",
+        f"ride:{ride_request.ride_id}:request:{ride_request.passenger.user_id}",
         value=ride_request.status.value,
         seconds=config.RIDE_REQUEST_TTL,
     )
 
 
 async def update_request(redis_cli: Redis, ride_request: RideRequest) -> None:
-    ride_key = f"ride:{ride_request.ride_uid}"
+    ride_key = f"ride:{ride_request.ride_id}"
     await redis_cli.delete(f"{ride_key}:request:{ride_request.passenger.user_id}")
     await redis_cli.set(
         f"{ride_key}:passenger:{ride_request.passenger.user_id}",
@@ -29,7 +29,7 @@ async def update_request(redis_cli: Redis, ride_request: RideRequest) -> None:
 
 
 async def request_exists(redis_cli: Redis, ride_request: RideRequest) -> bool:
-    return bool(await redis_cli.exists(f"ride:{ride_request.ride_uid}:request:{ride_request.passenger.user_id}"))
+    return bool(await redis_cli.exists(f"ride:{ride_request.ride_id}:request:{ride_request.passenger.user_id}"))
 
 
 async def delete_or_exclude(redis_cli: Redis, profile: Profile, timeout: int = 0) -> None:
@@ -39,19 +39,19 @@ async def delete_or_exclude(redis_cli: Redis, profile: Profile, timeout: int = 0
         await _delete(redis_cli, profile.user_id, timeout)
 
 
-async def _delete(redis_cli: Redis, ride_id: int, timeout: int) -> None:
+async def _delete(redis_cli: Redis, ride_id: str, timeout: int) -> None:
     ride = await get(redis_cli, ride_id)
     keys = [f"ride:{ride_id}:passenger:{passenger.profile.user_id}" for passenger in ride.passengers]
     await asyncio.gather(*[redis_cli.expire(key, timeout) for key in keys])
 
 
-async def _exclude(redis_cli: Redis, user_id: int, timeout: int) -> None:
+async def _exclude(redis_cli: Redis, user_id: str, timeout: int) -> None:
     ride_id = await get_ride_id(redis_cli, user_id)
     if ride_id:
         await redis_cli.expire(f"ride:{ride_id}:passenger:{user_id}", timeout)
 
 
-async def get(redis_cli: Redis, ride_id: int) -> Ride:
+async def get(redis_cli: Redis, ride_id: str) -> Ride:
     keys = [key async for key in redis_cli.iscan(match=f"ride:{ride_id}:passenger:*")]
     passengers_key = [key.decode().rpartition(":")[-1] for key in keys]
 
@@ -69,17 +69,17 @@ async def get(redis_cli: Redis, ride_id: int) -> Ride:
     return Ride(ride_id=str(ride_id), driver=driver, passengers=passengers)
 
 
-async def get_ride_id(redis_cli: Redis, user_id: int) -> Optional[int]:
+async def get_ride_id(redis_cli: Redis, user_id: str) -> Optional[str]:
     async for key in redis_cli.iscan(match=f"ride:*:passenger:{user_id}"):
-        return int(key.decode().split(":")[1])
+        return str(key.decode().split(":")[1])
 
     async for _ in redis_cli.iscan(match=f"ride:{user_id}:passenger:*"):  # noqa
-        return int(user_id)
+        return user_id
 
     return None
 
 
-async def persist(redis_cli: Redis, user_id: int) -> None:
+async def persist(redis_cli: Redis, user_id: str) -> None:
     ride_id = await get_ride_id(redis_cli, user_id)
     keys = [key async for key in redis_cli.iscan(match=f"ride:{ride_id}:passenger:*")]
     await asyncio.gather(*[redis_cli.persist(key) for key in keys])

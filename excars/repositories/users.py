@@ -5,11 +5,11 @@ from aioredis import Redis
 from excars.models.user import User
 
 
-def _get_key(user_id: int) -> str:
+def _get_key(user_id: str) -> str:
     return f"users:{user_id}"
 
 
-async def get(redis_cli: Redis, user_id: int) -> Optional[User]:
+async def get(redis_cli: Redis, user_id: str) -> Optional[User]:
     data = await redis_cli.get(_get_key(user_id))
     if not data:
         return None

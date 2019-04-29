@@ -23,7 +23,7 @@ async def publish_map(websocket: WebSocket, user: User, redis_cli: Redis):
         await asyncio.sleep(config.PUBLISH_MAP_FREQUENCY)
 
 
-async def _prepare_map(user_id: int, locations: List[UserLocation], redis_cli: Redis) -> List[MapItem]:
+async def _prepare_map(user_id: str, locations: List[UserLocation], redis_cli: Redis) -> List[MapItem]:
     user_ride_id = await repositories.rides.get_ride_id(redis_cli, user_id)
 
     map_items = []

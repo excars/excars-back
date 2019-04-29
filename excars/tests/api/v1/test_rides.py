@@ -45,7 +45,7 @@ def test_update_ride(client, profile_factory, make_token_headers, role):
         loop = asyncio.get_event_loop()
         loop.run_until_complete(repositories.rides.create_request(cli.app.redis_cli, ride_request))
         response = cli.put(
-            f"/api/v1/rides/{ride_request.ride_uid}",
+            f"/api/v1/rides/{ride_request.ride_id}",
             headers=make_token_headers(receiver.user_id),
             json={"status": RideRequestStatus.accepted.value, "sender": sender.user_id},
         )

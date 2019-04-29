@@ -38,7 +38,7 @@ async def get_current_user(token: str = Security(oauth2), redis_cli: Redis = Dep
     except ValidationError as exc:
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail=exc.json(indent=None)) from exc
 
-    user = await repositories.users.get(redis_cli, user_id=int(token_data.sub))
+    user = await repositories.users.get(redis_cli, user_id=token_data.sub)
     if user is None:
         user = User.from_token(token_data)
         await repositories.users.save(redis_cli, user)

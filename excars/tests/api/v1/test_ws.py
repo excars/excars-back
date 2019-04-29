@@ -61,7 +61,7 @@ def test_ws_receive_map_without_ride_and_profile(client, location_factory, profi
     sender = profile_factory(role=role)
     location = location_factory(user_id=sender.user_id)
 
-    receiver_user_id = sender.user_id + 1
+    receiver_user_id = sender.user_id + "1"
     location_factory(user_id=receiver_user_id)
 
     with client as cli:

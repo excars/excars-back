@@ -24,7 +24,7 @@ async def join(
 
 @router.get("/profiles/{profile_id}", tags=["profiles"], response_model=Profile)
 async def get_profile(
-    profile_id: int, user: User = Depends(get_current_user), redis_cli: Redis = Depends(get_redis_cli)
+    profile_id: str, user: User = Depends(get_current_user), redis_cli: Redis = Depends(get_redis_cli)
 ):
     """
     Gets profile

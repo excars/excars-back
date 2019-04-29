@@ -4,7 +4,7 @@ from excars.models.token import TokenPayload
 
 
 class User(BaseModel):
-    user_id: int
+    user_id: str
     email: str
     name: str
     first_name: str

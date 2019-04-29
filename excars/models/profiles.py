@@ -28,7 +28,7 @@ class JoinRequest(BaseModel):
 
 
 class Profile(BaseModel):
-    user_id: int
+    user_id: str
     name: str
     avatar: str
     role: Role

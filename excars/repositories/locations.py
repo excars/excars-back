@@ -13,7 +13,7 @@ def decode(data):
     return {k.decode(): v.decode() for k, v in data.items()}
 
 
-async def list_for(redis_cli: Redis, user_id: int) -> List[UserLocation]:
+async def list_for(redis_cli: Redis, user_id: str) -> List[UserLocation]:
     if await redis_cli.zrank(KEY, user_id) is None:
         return []
 
@@ -25,7 +25,7 @@ async def list_for(redis_cli: Redis, user_id: int) -> List[UserLocation]:
     return [UserLocation(**location) for location in locations]
 
 
-async def save_for(redis_cli: Redis, user_id: int, location: Location):
+async def save_for(redis_cli: Redis, user_id: str, location: Location):
     await redis_cli.geoadd(
         KEY, latitude=str(location.latitude), longitude=str(location.longitude), member=str(user_id)
     )
