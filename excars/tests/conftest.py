@@ -38,6 +38,7 @@ def make_token_headers(mocker, faker, make_token_payload):
 @pytest.yield_fixture
 def client(mocker):
     from starlette.testclient import TestClient, WebSocketTestSession
+    from starlette.types import Message
 
     from excars.main import app
 
@@ -53,6 +54,12 @@ def client(mocker):
         def _loop(self, value):  # pylint: disable=no-self-use
             value.stop()
             value.close()
+
+        # See https://github.com/encode/starlette/pull/459
+        async def _asgi_receive(self) -> Message:
+            while self._receive_queue.empty():
+                await asyncio.sleep(0)
+            return self._receive_queue.get()
 
     mocker.patch("starlette.testclient.WebSocketTestSession", WebSocketTestSessionMonkeyPatch)
 
