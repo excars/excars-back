@@ -28,7 +28,7 @@ class Stream(WebSocketEndpoint):
         self.redis_cli = websocket.app.redis_cli
         await websocket.accept()
         try:
-            self.user = get_current_user(token=websocket.headers.get("Authorization", ""))
+            self.user = await get_current_user(websocket.headers.get("Authorization", ""), redis_cli=self.redis_cli)
         except HTTPException:
             await websocket.close()
         else:

@@ -22,6 +22,15 @@ def assert_map_item(message: Dict[str, Any], user_id: int, location: Location, h
     assert map_item.has_same_ride == has_same_ride
 
 
+def wait_for_message_type(ws, message_type: MessageType, count: int = 3):
+    result = False
+    for _ in range(count):
+        data = ws.receive_json()
+        if data["type"] == message_type:
+            result = True
+    return result
+
+
 def test_ws_close_for_unauthorized_user(client):
     with pytest.raises(WebSocketDisconnect):
         with client as cli, cli.websocket_connect("/api/v1/ws") as ws:
@@ -137,12 +146,10 @@ def test_ws_receive_ride_requested(client, profile_factory, make_token_headers):
 
     with client as cli:
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.receiver.user_id)) as ws:
+            time.sleep(0.1)
             loop = asyncio.get_event_loop()
             loop.create_task(repositories.stream.ride_requested(cli.app.redis_cli, ride_request))
-            ws.receive_json()
-            ws.receive_json()
-            message = ws.receive_json()
-            assert message["type"] == MessageType.ride_requested
+            assert wait_for_message_type(ws, MessageType.ride_requested)
 
 
 @pytest.mark.parametrize(
@@ -159,12 +166,10 @@ def test_ws_receive_ride_request_updated(client, profile_factory, make_token_hea
 
     with client as cli:
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.sender.user_id)) as ws:
+            time.sleep(0.1)
             loop = asyncio.get_event_loop()
             loop.create_task(repositories.stream.request_updated(cli.app.redis_cli, ride_request))
-            ws.receive_json()
-            ws.receive_json()
-            message = ws.receive_json()
-            assert message["type"] == expected
+            assert wait_for_message_type(ws, expected)
 
 
 @pytest.mark.parametrize("role", [Role.driver, Role.hitchhiker])
@@ -186,9 +191,7 @@ def test_ws_ride_updated(client, profile_factory, make_token_headers, role):
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.sender.user_id)) as ws:
             time.sleep(0.1)
             loop.create_task(repositories.stream.ride_updated(cli.app.redis_cli, ride))
-            ws.receive_json()
-            ws.receive_json()
-            assert ws.receive_json()["type"] == MessageType.ride_updated
+            assert wait_for_message_type(ws, MessageType.ride_updated)
 
 
 def test_ws_ride_cancelled(client, profile_factory, make_token_headers):
@@ -209,10 +212,7 @@ def test_ws_ride_cancelled(client, profile_factory, make_token_headers):
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.receiver.user_id)) as ws:
             time.sleep(0.1)
             loop.create_task(repositories.stream.ride_cancelled(cli.app.redis_cli, ride))
-            ws.receive_json()
-            ws.receive_json()
-            message = ws.receive_json()
-            assert message["type"] == MessageType.ride_cancelled
+            assert wait_for_message_type(ws, MessageType.ride_cancelled)
 
 
 def test_ws_reconnect(client, profile_factory, make_token_headers):
