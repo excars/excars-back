@@ -22,13 +22,12 @@ def assert_map_item(message: Dict[str, Any], user_id: int, location: Location, h
     assert map_item.has_same_ride == has_same_ride
 
 
-def wait_for_message_type(ws, message_type: MessageType, count: int = 3):
-    result = False
+def wait_for_message_type(ws, message_type: MessageType, count: int = 3):  # pragma: no cover
     for _ in range(count):
         data = ws.receive_json()
         if data["type"] == message_type:
-            result = True
-    return result
+            return True
+    return False
 
 
 def test_ws_close_for_unauthorized_user(client):
@@ -216,12 +215,21 @@ def test_ws_ride_cancelled(client, profile_factory, make_token_headers):
 
 
 def test_ws_reconnect(client, profile_factory, make_token_headers):
-    receiver = profile_factory()
-    with client as cli:
-        with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(receiver.user_id)) as ws:
-            time.sleep(0.1)
-            ws.receive_json()
+    ride_request = RideRequest(
+        sender=profile_factory(role=Role.driver),
+        receiver=profile_factory(role=Role.hitchhiker),
+        status=RideRequestStatus.requested,
+    )
 
-        with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(receiver.user_id)) as ws:
+    with client as cli:
+        with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.receiver.user_id)) as ws:
             time.sleep(0.1)
-            ws.receive_json()
+            loop = asyncio.get_event_loop()
+            loop.create_task(repositories.stream.ride_requested(cli.app.redis_cli, ride_request))
+            assert wait_for_message_type(ws, MessageType.ride_requested)
+
+        with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.receiver.user_id)) as ws:
+            time.sleep(0.1)
+            loop = asyncio.get_event_loop()
+            loop.create_task(repositories.stream.ride_requested(cli.app.redis_cli, ride_request))
+            assert wait_for_message_type(ws, MessageType.ride_requested)
