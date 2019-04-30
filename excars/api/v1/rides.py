@@ -43,9 +43,11 @@ async def leave_ride(user: User = Depends(get_current_user), redis_cli: Redis = 
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found.")
     await repositories.rides.delete_or_exclude(redis_cli, profile)
+    ride = await repositories.rides.get(redis_cli, ride_id=profile.user_id)
     if profile.role == Role.driver:
-        ride = await repositories.rides.get(redis_cli, ride_id=profile.user_id)
         await repositories.stream.ride_cancelled(redis_cli, ride)
+    else:
+        await repositories.stream.ride_updated(redis_cli, ride)
     return {}
 
 
