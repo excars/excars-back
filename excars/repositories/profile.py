@@ -22,6 +22,10 @@ async def get(redis_cli: Redis, user_id: str) -> Optional[Profile]:
     return Profile(**json.loads(data))
 
 
+async def delete(redis_cli: Redis, user_id: str) -> None:
+    await redis_cli.delete(_get_key(user_id))
+
+
 async def persist(redis_cli: Redis, user_id: str) -> None:
     await redis_cli.persist(_get_key(user_id))
 

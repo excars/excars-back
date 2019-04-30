@@ -34,3 +34,12 @@ async def get_profile(
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found.")
     return profile
+
+
+@router.delete("/profiles", tags=["profiles"], status_code=204)
+async def leave(*, user: User = Depends(get_current_user), redis_cli: Redis = Depends(get_redis_cli)):
+    """
+    Deletes current profile
+    """
+    await repositories.profile.delete(redis_cli, user.user_id)
+    return {}

@@ -37,3 +37,9 @@ def test_get_profile_returns_404(client, faker, make_token_headers):
     with client as cli:
         response = cli.get(f"/api/v1/profiles/{faker.pyint()}", headers=make_token_headers())
     assert response.status_code == 404
+
+
+def test_delete_profile(client, make_token_headers):
+    with client as cli:
+        response = cli.delete(f"/api/v1/profiles", headers=make_token_headers())
+    assert response.status_code == 204
