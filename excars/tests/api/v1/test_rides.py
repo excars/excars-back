@@ -114,14 +114,15 @@ def test_leaves_ride_when_no_ride_exists(client, profile_factory, make_token_hea
     profile = profile_factory(role=role)
     with client as cli:
         response = cli.delete("/api/v1/rides", headers=make_token_headers(profile.user_id))
-        assert response.status_code == 204
-        assert response.json() == {}
+        assert response.status_code == 404
+        assert response.json() == {"detail": "You are not in any ride."}
 
 
 def test_leave_ride_raises_404(client, make_token_headers):
     with client as cli:
         response = cli.delete("/api/v1/rides", headers=make_token_headers())
     assert response.status_code == 404
+    assert response.json() == {"detail": "Profile not found."}
 
 
 @pytest.mark.parametrize("role", [Role.driver, Role.hitchhiker])

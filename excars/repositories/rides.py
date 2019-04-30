@@ -41,8 +41,9 @@ async def delete_or_exclude(redis_cli: Redis, profile: Profile, timeout: int = 0
 
 async def _delete(redis_cli: Redis, ride_id: str, timeout: int) -> None:
     ride = await get(redis_cli, ride_id)
-    keys = [f"ride:{ride_id}:passenger:{passenger.profile.user_id}" for passenger in ride.passengers]
-    await asyncio.gather(*[redis_cli.expire(key, timeout) for key in keys])
+    if ride is not None:
+        keys = [f"ride:{ride_id}:passenger:{passenger.profile.user_id}" for passenger in ride.passengers]
+        await asyncio.gather(*[redis_cli.expire(key, timeout) for key in keys])
 
 
 async def _exclude(redis_cli: Redis, user_id: str, timeout: int) -> None:
@@ -51,22 +52,28 @@ async def _exclude(redis_cli: Redis, user_id: str, timeout: int) -> None:
         await redis_cli.expire(f"ride:{ride_id}:passenger:{user_id}", timeout)
 
 
-async def get(redis_cli: Redis, ride_id: str) -> Ride:
+async def get(redis_cli: Redis, ride_id: str) -> Optional[Ride]:
     keys = [key async for key in redis_cli.iscan(match=f"ride:{ride_id}:passenger:*")]
+    if not keys:
+        return None
     passengers_key = [key.decode().rpartition(":")[-1] for key in keys]
 
     driver = await profile_repo.get(redis_cli, ride_id)
+    if driver is None:
+        return None
 
     passengers = []
     for key in passengers_key:
+        profile = await profile_repo.get(redis_cli, key)
+        if profile is None:
+            continue
         passengers.append(
-            Passenger(
-                profile=await profile_repo.get(redis_cli, key),
-                status=(await redis_cli.get(f"ride:{ride_id}:passenger:{key}")).decode(),
-            )
+            Passenger(profile=profile, status=(await redis_cli.get(f"ride:{ride_id}:passenger:{key}")).decode())
         )
+    if not passengers:
+        return None
 
-    return Ride(ride_id=str(ride_id), driver=driver, passengers=passengers)
+    return Ride(ride_id=ride_id, driver=driver, passengers=passengers)
 
 
 async def get_ride_id(redis_cli: Redis, user_id: str) -> Optional[str]:

@@ -19,7 +19,7 @@ async def create_ride_request(
     Creates request for a ride
     """
     receiver = await repositories.profile.get(redis_cli, ride_create.receiver)
-    if not receiver:
+    if receiver is None:
         raise HTTPException(status_code=404, detail="Receiver not found.")
 
     sender = await repositories.profile.get(redis_cli, user.user_id)
@@ -40,14 +40,23 @@ async def leave_ride(user: User = Depends(get_current_user), redis_cli: Redis = 
     Remove current user from ride
     """
     profile = await repositories.profile.get(redis_cli, user.user_id)
-    if not profile:
+    if profile is None:
         raise HTTPException(status_code=404, detail="Profile not found.")
+
+    ride_id = await repositories.rides.get_ride_id(redis_cli, user_id=user.user_id)
+    if ride_id is None:
+        raise HTTPException(status_code=404, detail="You are not in any ride.")
+
+    ride = await repositories.rides.get(redis_cli, ride_id=ride_id)
+    if ride is None:
+        raise HTTPException(status_code=404, detail="You are not in any ride.")
+
     await repositories.rides.delete_or_exclude(redis_cli, profile)
-    ride = await repositories.rides.get(redis_cli, ride_id=profile.user_id)
     if profile.role == Role.driver:
         await repositories.stream.ride_cancelled(redis_cli, ride)
     else:
         await repositories.stream.ride_updated(redis_cli, ride)
+
     return {}
 
 
@@ -57,7 +66,7 @@ async def get_current_ride(user: User = Depends(get_current_user), redis_cli: Re
     Returns current ride
     """
     ride_id = await repositories.rides.get_ride_id(redis_cli, user.user_id)
-    if not ride_id:
+    if ride_id is None:
         raise HTTPException(status_code=404, detail="Ride not found.")
     ride = await repositories.rides.get(redis_cli, ride_id)
     return ride
@@ -74,11 +83,11 @@ async def update_ride_request(
     Updates ride request status
     """
     receiver = await repositories.profile.get(redis_cli, user.user_id)
-    if not receiver:
+    if receiver is None:
         raise HTTPException(status_code=404, detail="Receiver not found.")
 
     sender = await repositories.profile.get(redis_cli, ride_update.sender)
-    if not sender:
+    if sender is None:
         raise HTTPException(status_code=404, detail="Sender not found.")
 
     ride_request = RideRequest(sender=sender, receiver=receiver, status=ride_update.status)
@@ -89,6 +98,7 @@ async def update_ride_request(
     await repositories.stream.request_updated(redis_cli, ride_request)
 
     ride = await repositories.rides.get(redis_cli, ride_request.ride_id)
+    assert ride is not None
     await repositories.stream.ride_updated(redis_cli, ride)
 
     return ride_request
