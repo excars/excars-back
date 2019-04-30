@@ -20,7 +20,7 @@ async def init_stream(websocket: WebSocket, user: User, redis_cli: Redis):
     await redis_cli.xadd(stream=stream, fields={b"type": b"CREATE", b"user": user.user_id})
 
     groups = [group[b"name"].decode() for group in await redis_cli.xinfo_groups(stream)]
-    if str(user.user_id) not in groups:
+    if user.user_id not in groups:
         await redis_cli.xgroup_create(stream=stream, group_name=user.user_id)
 
     while True:

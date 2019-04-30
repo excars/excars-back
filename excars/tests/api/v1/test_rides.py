@@ -7,9 +7,10 @@ from excars.models.profiles import Role
 from excars.models.rides import Ride, RideRequest, RideRequestStatus
 
 
-def test_create_ride_request(client, profile_factory, make_token_headers):
-    receiver = profile_factory()
-    sender = profile_factory(role=Role.opposite(receiver.role))
+@pytest.mark.parametrize("role", [Role.driver, Role.hitchhiker])
+def test_create_ride_request(client, profile_factory, make_token_headers, role):
+    receiver = profile_factory(role=role)
+    sender = profile_factory(role=Role.opposite(role))
 
     with client as cli:
         headers = make_token_headers(sender.user_id)

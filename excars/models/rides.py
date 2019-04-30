@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+from typing import Any, List
 
 from pydantic import BaseModel
 
@@ -13,13 +13,14 @@ class RideRequestStatus(str, Enum):
 
 
 class RideRequest(BaseModel):
+    ride_id: str = None  # type: ignore
     sender: Profile
     receiver: Profile
     status: RideRequestStatus
 
-    @property
-    def ride_id(self) -> str:
-        return self.driver.user_id
+    def __init__(self, **data: Any) -> None:
+        super().__init__(**data)
+        self.ride_id = self._get_profile_by_role(Role.driver).user_id
 
     @property
     def driver(self) -> Profile:

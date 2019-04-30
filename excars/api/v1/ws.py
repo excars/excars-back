@@ -21,7 +21,7 @@ router = APIRouter()
 class Stream(WebSocketEndpoint):
     encoding = "json"
     tasks: Optional[List[Task]] = None
-    user: Optional[User] = None  # type: ignore
+    user: Optional[User] = None
     redis_cli: Redis
 
     async def on_connect(self, websocket: WebSocket) -> None:
