@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any
+from typing import Any, Dict, NamedTuple
 
 from pydantic import BaseModel
 
@@ -22,3 +22,9 @@ class MessageType(str, Enum):
 class Message(BaseModel):
     type: MessageType
     data: Any
+
+
+class StreamMessage(NamedTuple):
+    stream: str
+    message_id: int
+    data: Dict[bytes, Any]

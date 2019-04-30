@@ -23,10 +23,6 @@ class RideRequest(BaseModel):
         self.ride_id = self._get_profile_by_role(Role.driver).user_id
 
     @property
-    def driver(self) -> Profile:
-        return self._get_profile_by_role(Role.driver)
-
-    @property
     def passenger(self) -> Profile:
         return self._get_profile_by_role(Role.hitchhiker)
 
