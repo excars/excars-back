@@ -4,7 +4,7 @@ from sentry_asgi import SentryMiddleware
 
 from excars import api, config, oauth2_redirect, redis
 
-app = FastAPI(debug=config.DEBUG)
+app = FastAPI(title="ExCars", debug=config.DEBUG)
 app.include_router(api.v1.router, prefix="/api/v1")
 app.include_router(oauth2_redirect.router)
 
