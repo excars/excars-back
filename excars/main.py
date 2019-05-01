@@ -8,7 +8,7 @@ app = FastAPI(debug=config.DEBUG)
 app.include_router(api.v1.router, prefix="/api/v1")
 app.include_router(oauth2_redirect.router)
 
-if config.SENTRY_DSN:
+if config.SENTRY_DSN:  # pragma: no cover
     sentry_sdk.init(dsn=config.SENTRY_DSN)
     app.add_middleware(SentryMiddleware)
 

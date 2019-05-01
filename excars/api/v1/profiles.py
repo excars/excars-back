@@ -10,7 +10,7 @@ from excars.models.user import User
 router = APIRouter()
 
 
-@router.post("/profiles", tags=["profiles"], response_model=Profile)
+@router.post("/profiles", response_model=Profile)
 async def join(
     *, join_request: JoinRequest, user: User = Depends(get_current_user), redis_cli: Redis = Depends(get_redis_cli)
 ):
@@ -22,7 +22,7 @@ async def join(
     return profile
 
 
-@router.get("/profiles/{profile_id}", tags=["profiles"], response_model=Profile)
+@router.get("/profiles/{profile_id}", response_model=Profile)
 async def get_profile(
     profile_id: str, user: User = Depends(get_current_user), redis_cli: Redis = Depends(get_redis_cli)
 ):
@@ -36,7 +36,7 @@ async def get_profile(
     return profile
 
 
-@router.delete("/profiles", tags=["profiles"], status_code=204)
+@router.delete("/profiles", status_code=204)
 async def leave(*, user: User = Depends(get_current_user), redis_cli: Redis = Depends(get_redis_cli)):
     """
     Deletes current profile

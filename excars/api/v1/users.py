@@ -6,7 +6,7 @@ from excars.models.user import User
 router = APIRouter()
 
 
-@router.get("/users/me", tags=["users"], response_model=User)
+@router.get("/users/me", response_model=User)
 async def retrieve_me(user: User = Depends(get_current_user)):
     """
     Gets current user
