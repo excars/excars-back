@@ -43,3 +43,4 @@ def test_delete_profile(client, make_token_headers):
     with client as cli:
         response = cli.delete(f"/api/v1/profiles", headers=make_token_headers())
     assert response.status_code == 204
+    assert response.text == ""

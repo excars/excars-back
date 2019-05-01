@@ -42,4 +42,3 @@ async def leave(*, user: User = Depends(get_current_user), redis_cli: Redis = De
     Deletes current profile
     """
     await repositories.profile.delete(redis_cli, user.user_id)
-    return {}

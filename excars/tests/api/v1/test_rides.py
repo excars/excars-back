@@ -106,7 +106,7 @@ def test_leaves_ride(client, profile_factory, make_token_headers, role):
         loop.run_until_complete(repositories.rides.update_request(cli.app.redis_cli, ride_request))
         response = cli.delete("/api/v1/rides", headers=make_token_headers(sender.user_id))
         assert response.status_code == 204
-        assert response.json() == {}
+        assert response.text == ""
 
 
 @pytest.mark.parametrize("role", [Role.driver, Role.hitchhiker])

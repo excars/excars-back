@@ -57,8 +57,6 @@ async def leave_ride(user: User = Depends(get_current_user), redis_cli: Redis = 
     else:
         await repositories.stream.ride_updated(redis_cli, ride)
 
-    return {}
-
 
 @router.get("/rides/current", response_model=Ride)
 async def get_current_ride(user: User = Depends(get_current_user), redis_cli: Redis = Depends(get_redis_cli)):
