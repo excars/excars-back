@@ -30,7 +30,7 @@ def make_token_headers(mocker, faker, make_token_payload):
     def token_headers_for(user_id: int = None):
         user_id = user_id or faker.pyint()
         payload = make_token_payload(sub=user_id)
-        mocker.patch("excars.api.utils.security.verify_oauth2_token", return_value=payload)
+        mocker.patch("excars.api.utils.security.verify_id_token", return_value=payload)
         return {"Authorization": "Bearer fake.jwt.token"}
 
     return token_headers_for
