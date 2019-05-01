@@ -12,7 +12,7 @@ from excars.models.profiles import Role
 from excars.models.rides import RideRequest, RideRequestStatus
 
 
-def assert_map_item(message: Dict[str, Any], user_id: int, location: Location, has_same_ride: bool):
+def assert_map_item(message: Dict[str, Any], user_id: str, location: Location, has_same_ride: bool):
     assert message["type"] == MessageType.map
     map_item = MapItem(**message["data"][0])
     assert map_item.user_id == user_id

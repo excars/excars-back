@@ -1,8 +1,8 @@
 import asyncio
-from typing import List
+from typing import Awaitable, List
 
 from aioredis import Redis
-from starlette.websockets import WebSocket
+from starlette.websockets import WebSocket, WebSocketState
 
 from excars import config, repositories
 from excars.models.locations import MapItem, UserLocation
@@ -10,12 +10,12 @@ from excars.models.messages import Message, MessageType
 from excars.models.user import User
 
 
-def init(websocket: WebSocket, user: User, redis_cli: Redis) -> List[asyncio.Task]:
-    return [asyncio.create_task(publish_map(websocket, user, redis_cli))]
+def init(websocket: WebSocket, user: User, redis_cli: Redis) -> List[Awaitable]:
+    return [publish_map(websocket, user, redis_cli)]
 
 
-async def publish_map(websocket: WebSocket, user: User, redis_cli: Redis):
-    while True:
+async def publish_map(websocket: WebSocket, user: User, redis_cli: Redis) -> None:
+    while websocket.application_state == WebSocketState.CONNECTED:
         locations = await repositories.locations.list_for(redis_cli, user_id=user.user_id)
         map_items = await _prepare_map(user.user_id, locations, redis_cli)
         message = Message(type=MessageType.map, data=map_items)

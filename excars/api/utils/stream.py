@@ -1,23 +1,17 @@
 import asyncio
-from asyncio import Task
 
 from aioredis import Redis
 from pydantic import ValidationError
-from starlette.websockets import WebSocket
+from starlette.websockets import WebSocket, WebSocketState
 
 from excars import config, repositories
 from excars.models.messages import Message
 from excars.models.user import User
 
 
-def init(websocket: WebSocket, user: User, redis_cli: Redis) -> Task:
-    return asyncio.create_task(init_stream(websocket, user, redis_cli))
-
-
-async def init_stream(websocket: WebSocket, user: User, redis_cli: Redis):
+async def init(websocket: WebSocket, user: User, redis_cli: Redis) -> None:
     await repositories.stream.create(redis_cli, user_id=user.user_id)
-
-    while True:
+    while websocket.application_state == WebSocketState.CONNECTED:
         messages = await repositories.stream.list_messages_for(redis_cli, user_id=user.user_id)
         for stream_message in messages:
             try:
