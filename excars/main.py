@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 
-from excars import api, oauth2_redirect, redis
+from excars import api, config, oauth2_redirect, redis
 
-app = FastAPI(debug=True)
+app = FastAPI(debug=config.DEBUG)
 app.include_router(api.v1.router, prefix="/api/v1")
 app.include_router(oauth2_redirect.router)
 
