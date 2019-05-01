@@ -1,10 +1,16 @@
+import sentry_sdk
 from fastapi import FastAPI
+from sentry_asgi import SentryMiddleware
 
 from excars import api, config, oauth2_redirect, redis
 
 app = FastAPI(debug=config.DEBUG)
 app.include_router(api.v1.router, prefix="/api/v1")
 app.include_router(oauth2_redirect.router)
+
+if config.SENTRY_DSN:
+    sentry_sdk.init(dsn=config.SENTRY_DSN)
+    app.add_middleware(SentryMiddleware)
 
 
 @app.on_event("startup")

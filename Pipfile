@@ -7,17 +7,18 @@ name = "pypi"
 aioredis = "*"
 fastapi = "*"
 google-auth = "*"
+sentry-sdk = "*"
+sentry-asgi = "*"
+requests = "*"
 
 [dev-packages]
-isort = {extras = ["pipfile"],version = "*"}
-"flake8" = "*"
+mypy = "*"
+pre-commit = "*"
 pylint = "*"
 pytest = "*"
 pytest-cov = "*"
-pytest-mock = "*"
-pre-commit = "*"
 pytest-faker = "*"
-mypy = "*"
+pytest-mock = "*"
 
 [requires]
 python_version = "3.7"

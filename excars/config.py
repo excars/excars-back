@@ -10,6 +10,8 @@ def get_bool(key: str) -> bool:
 
 DEBUG = get_bool("APP_DEBUG")
 
+SENTRY_DSN = os.getenv("SENTRY_DSN")
+
 GOOGLE_OAUTH2_CLIENT_ID = os.getenv("GOOGLE_OAUTH2_CLIENT_ID")
 
 REDIS_HOST = os.getenv("REDIS_HOST", "redis://redis")
