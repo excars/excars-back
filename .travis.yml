@@ -16,10 +16,11 @@ install:
 
 
 before_script:
+  - docker pull excars/excars-back
   - docker run -d --name redis redis:5.0.3-alpine
 
 script:
-  - docker build . -t excars/excars-back
+  - docker build . -t excars/excars-back --cache-from excars/excars-back
   - docker run --rm --link redis:redis --volume $(pwd):/excars-back excars/excars-back pytest; [ "$?" -eq 0 ] || exit $?
 
 after_success:
