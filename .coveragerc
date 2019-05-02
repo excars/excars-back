@@ -2,6 +2,7 @@
 source =
     .
     /excars-back/
+    /app/
 
 [run]
 omit =

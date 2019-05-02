@@ -21,7 +21,7 @@ before_script:
 
 script:
   - docker build . -t excars/excars-back --cache-from excars/excars-back
-  - docker run --rm --link redis:redis --volume $(pwd):/excars-back excars/excars-back pytest; [ "$?" -eq 0 ] || exit $?
+  - docker run --rm --link redis:redis --volume $(pwd):/app excars/excars-back pytest; [ "$?" -eq 0 ] || exit $?
 
 after_success:
   - mv .coverage .coverage.travis
