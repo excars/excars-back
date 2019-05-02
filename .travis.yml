@@ -12,7 +12,7 @@ services:
 
 
 install:
-  - pip install codecov coverage pre-commit
+  - pip install codecov coverage
 
 
 before_script:
@@ -37,11 +37,10 @@ deploy:
   - provider: script
     script:
       docker tag excars/excars-back registry.heroku.com/${HEROKU_APP_STAGE_NAME}/web;
-      docker push excars/excars-back;
       docker push registry.heroku.com/${HEROKU_APP_STAGE_NAME}/web;
       heroku container:release web --app ${HEROKU_APP_STAGE_NAME}
     on:
-      branch: fastapi
+      branch: master
   - provider: script
     script:
       docker tag excars/excars-back registry.heroku.com/${HEROKU_APP_PROD_NAME}/web;
@@ -49,4 +48,4 @@ deploy:
       docker push registry.heroku.com/${HEROKU_APP_PROD_NAME}/web;
       heroku container:release web --app ${HEROKU_APP_PROD_NAME}
     on:
-      branch: master
+      branch: tags
