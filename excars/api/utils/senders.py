@@ -10,7 +10,7 @@ from excars.models.messages import Message, MessageType
 from excars.models.user import User
 
 
-def init(websocket: WebSocket, user: User, redis_cli: Redis) -> List[Awaitable]:
+def send(websocket: WebSocket, user: User, redis_cli: Redis) -> List[Awaitable]:
     return [publish_map(websocket, user, redis_cli)]
 
 

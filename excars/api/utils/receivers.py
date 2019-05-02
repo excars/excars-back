@@ -8,7 +8,7 @@ from excars.models.messages import Message, MessageType
 from excars.models.user import User
 
 
-async def init(websocket: WebSocket, user: User, redis_cli: Redis) -> None:
+async def listen(websocket: WebSocket, user: User, redis_cli: Redis) -> None:
     while True:
         data = await websocket.receive_json()
         try:

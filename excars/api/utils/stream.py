@@ -9,8 +9,11 @@ from excars.models.messages import Message
 from excars.models.user import User
 
 
-async def init(websocket: WebSocket, user: User, redis_cli: Redis) -> None:
-    await repositories.stream.create(redis_cli, user_id=user.user_id)
+async def init(redis_cli: Redis, user_id: str) -> None:
+    await repositories.stream.create(redis_cli, user_id)
+
+
+async def listen(websocket: WebSocket, user: User, redis_cli: Redis) -> None:
     while websocket.application_state == WebSocketState.CONNECTED:
         messages = await repositories.stream.list_messages_for(redis_cli, user_id=user.user_id)
         for stream_message in messages:

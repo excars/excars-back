@@ -12,23 +12,27 @@ router = APIRouter()
 
 @router.websocket_route("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
     redis_cli = websocket.app.redis_cli
     try:
         user = await get_current_user(websocket.headers.get("Authorization", ""), redis_cli=redis_cli)
     except HTTPException:
+        await websocket.accept()
         await websocket.close()
         return
 
     await asyncio.gather(
-        repositories.profile.persist(redis_cli, user.user_id), repositories.rides.persist(redis_cli, user.user_id)
+        repositories.profile.persist(redis_cli, user.user_id),
+        repositories.rides.persist(redis_cli, user.user_id),
+        stream.init(redis_cli, user.user_id),
     )
+
+    await websocket.accept()
 
     try:
         await asyncio.gather(
-            receivers.init(websocket, user, redis_cli),
-            stream.init(websocket, user, redis_cli),
-            *senders.init(websocket, user, redis_cli),
+            receivers.listen(websocket, user, redis_cli),
+            stream.listen(websocket, user, redis_cli),
+            *senders.send(websocket, user, redis_cli),
         )
     except WebSocketDisconnect:
         pass

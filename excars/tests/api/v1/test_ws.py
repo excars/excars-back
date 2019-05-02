@@ -1,5 +1,4 @@
 import asyncio
-import time
 from typing import Any, Dict
 
 import pytest
@@ -145,9 +144,7 @@ def test_ws_receive_ride_requested(client, profile_factory, make_token_headers):
 
     with client as cli:
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.receiver.user_id)) as ws:
-            time.sleep(0.1)
-            loop = asyncio.get_event_loop()
-            loop.create_task(repositories.stream.ride_requested(cli.app.redis_cli, ride_request))
+            asyncio.gather(repositories.stream.ride_requested(cli.app.redis_cli, ride_request))
             assert wait_for_message_type(ws, MessageType.ride_requested)
 
 
@@ -165,9 +162,7 @@ def test_ws_receive_ride_request_updated(client, profile_factory, make_token_hea
 
     with client as cli:
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.sender.user_id)) as ws:
-            time.sleep(0.1)
-            loop = asyncio.get_event_loop()
-            loop.create_task(repositories.stream.request_updated(cli.app.redis_cli, ride_request))
+            asyncio.gather(repositories.stream.request_updated(cli.app.redis_cli, ride_request))
             assert wait_for_message_type(ws, expected)
 
 
@@ -182,13 +177,9 @@ def test_ws_ride_updated(client, profile_factory, make_token_headers, role):
     with client as cli:
         loop = asyncio.get_event_loop()
         loop.run_until_complete(repositories.rides.update_request(cli.app.redis_cli, ride_request))
-        ride_id = loop.run_until_complete(
-            repositories.rides.get_ride_id(cli.app.redis_cli, ride_request.sender.user_id)
-        )
-        ride = loop.run_until_complete(repositories.rides.get(cli.app.redis_cli, ride_id))
+        ride = loop.run_until_complete(repositories.rides.get(cli.app.redis_cli, ride_request.ride_id))
 
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.sender.user_id)) as ws:
-            time.sleep(0.1)
             loop.create_task(repositories.stream.ride_updated(cli.app.redis_cli, ride))
             assert wait_for_message_type(ws, MessageType.ride_updated)
 
@@ -203,13 +194,9 @@ def test_ws_ride_cancelled(client, profile_factory, make_token_headers):
     with client as cli:
         loop = asyncio.get_event_loop()
         loop.run_until_complete(repositories.rides.update_request(cli.app.redis_cli, ride_request))
-        ride_id = loop.run_until_complete(
-            repositories.rides.get_ride_id(cli.app.redis_cli, ride_request.sender.user_id)
-        )
-        ride = loop.run_until_complete(repositories.rides.get(cli.app.redis_cli, ride_id))
+        ride = loop.run_until_complete(repositories.rides.get(cli.app.redis_cli, ride_request.ride_id))
 
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.receiver.user_id)) as ws:
-            time.sleep(0.1)
             loop.create_task(repositories.stream.ride_cancelled(cli.app.redis_cli, ride))
             assert wait_for_message_type(ws, MessageType.ride_cancelled)
 
@@ -223,13 +210,9 @@ def test_ws_reconnect(client, profile_factory, make_token_headers):
 
     with client as cli:
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.receiver.user_id)) as ws:
-            time.sleep(0.1)
-            loop = asyncio.get_event_loop()
-            loop.create_task(repositories.stream.ride_requested(cli.app.redis_cli, ride_request))
+            asyncio.gather(repositories.stream.ride_requested(cli.app.redis_cli, ride_request))
             assert wait_for_message_type(ws, MessageType.ride_requested)
 
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.receiver.user_id)) as ws:
-            time.sleep(0.1)
-            loop = asyncio.get_event_loop()
-            loop.create_task(repositories.stream.ride_requested(cli.app.redis_cli, ride_request))
+            asyncio.gather(repositories.stream.ride_requested(cli.app.redis_cli, ride_request))
             assert wait_for_message_type(ws, MessageType.ride_requested)
