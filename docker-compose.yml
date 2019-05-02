@@ -8,25 +8,16 @@ services:
       context: .
       dockerfile: ./Dockerfile
     ports:
-      - ${EXTERNAL_PORT}:8000
+      - ${EXTERNAL_PORT}:80
     volumes:
-      - .:/excars-back
+      - .:/app
+    environment:
+      MODULE_NAME: excars.main
     env_file:
     - ./secrets.env
     depends_on:
-      - db
       - redis
-    command: web
-
-  db:
-    restart: always
-    image: postgres:alpine
-    environment:
-      POSTGRES_DB: excars
-      POSTGRES_USER: excars
-      POSTGRES_PASSWORD: excars
-    expose:
-      - "5432"
+    command: /start-reload.sh
 
   redis:
     restart: always

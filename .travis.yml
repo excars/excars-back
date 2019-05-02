@@ -12,17 +12,16 @@ services:
 
 
 install:
-  - pip install codecov
-  - pip install coverage
+  - pip install codecov coverage
 
 
 before_script:
+  - docker pull excars/excars-back
   - docker run -d --name redis redis:5.0.3-alpine
-  - docker run -d --name postgres -e "POSTGRES_USER=excars" -e "POSTGRES_PASSWORD=excars" -e "POSTGRES_DB=excars" postgres:10.6-alpine
 
 script:
-  - docker build . -t excars/excars-back
-  - docker run --rm --link redis:redis --link postgres:db --volume $(pwd):/excars-back excars/excars-back make ci
+  - docker build . -t excars/excars-back --cache-from excars/excars-back
+  - docker run --rm --link redis:redis --volume $(pwd):/excars-back excars/excars-back pytest; [ "$?" -eq 0 ] || exit $?
 
 after_success:
   - mv .coverage .coverage.travis
@@ -33,14 +32,21 @@ after_success:
 before_deploy:
   wget -qO- https://toolbelt.heroku.com/install.sh | sh;
   echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin;
-  echo "${HEROKU_PASSWORD}" | docker login -u "${HEROKU_USERNAME}" --password-stdin registry.heroku.com;
-  docker tag excars/excars-back registry.heroku.com/${HEROKU_APP_NAME}/web
+  echo "${HEROKU_PASSWORD}" | docker login -u "${HEROKU_USERNAME}" --password-stdin registry.heroku.com
 
 deploy:
-  provider: script
-  script:
-    docker push excars/excars-back;
-    docker push registry.heroku.com/${HEROKU_APP_NAME}/web;
-    heroku container:release web --app ${HEROKU_APP_NAME}
-  on:
-    branch: master
+  - provider: script
+    script:
+      docker tag excars/excars-back registry.heroku.com/${HEROKU_APP_STAGE_NAME}/web;
+      docker push registry.heroku.com/${HEROKU_APP_STAGE_NAME}/web;
+      heroku container:release web --app ${HEROKU_APP_STAGE_NAME}
+    on:
+      branch: master
+  - provider: script
+    script:
+      docker tag excars/excars-back registry.heroku.com/${HEROKU_APP_PROD_NAME}/web;
+      docker push excars/excars-back;
+      docker push registry.heroku.com/${HEROKU_APP_PROD_NAME}/web;
+      heroku container:release web --app ${HEROKU_APP_PROD_NAME}
+    on:
+      branch: tags
