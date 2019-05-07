@@ -49,4 +49,4 @@ deploy:
       docker push registry.heroku.com/${HEROKU_APP_PROD_NAME}/web;
       heroku container:release web --app ${HEROKU_APP_PROD_NAME}
     on:
-      branch: tags
+      tags: true
