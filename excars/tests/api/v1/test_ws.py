@@ -136,6 +136,7 @@ def test_ws_send_invalid_data(client, profile_factory, make_token_headers):
 
 
 def test_ws_receive_ride_requested(client, profile_factory, make_token_headers):
+    loop = asyncio.get_event_loop()
     ride_request = RideRequest(
         sender=profile_factory(role=Role.driver),
         receiver=profile_factory(role=Role.hitchhiker),
@@ -144,7 +145,7 @@ def test_ws_receive_ride_requested(client, profile_factory, make_token_headers):
 
     with client as cli:
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.receiver.user_id)) as ws:
-            asyncio.gather(repositories.stream.ride_requested(cli.app.redis_cli, ride_request))
+            asyncio.run_coroutine_threadsafe(repositories.stream.ride_requested(cli.app.redis_cli, ride_request), loop)
             assert wait_for_message_type(ws, MessageType.ride_requested)
 
 
@@ -156,13 +157,16 @@ def test_ws_receive_ride_requested(client, profile_factory, make_token_headers):
     ],
 )
 def test_ws_receive_ride_request_updated(client, profile_factory, make_token_headers, status, expected):
+    loop = asyncio.get_event_loop()
     ride_request = RideRequest(
         sender=profile_factory(role=Role.driver), receiver=profile_factory(role=Role.hitchhiker), status=status
     )
 
     with client as cli:
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.sender.user_id)) as ws:
-            asyncio.gather(repositories.stream.request_updated(cli.app.redis_cli, ride_request))
+            asyncio.run_coroutine_threadsafe(
+                repositories.stream.request_updated(cli.app.redis_cli, ride_request), loop
+            )
             assert wait_for_message_type(ws, expected)
 
 
@@ -180,7 +184,7 @@ def test_ws_ride_updated(client, profile_factory, make_token_headers, role):
         ride = loop.run_until_complete(repositories.rides.get(cli.app.redis_cli, ride_request.ride_id))
 
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.sender.user_id)) as ws:
-            loop.create_task(repositories.stream.ride_updated(cli.app.redis_cli, ride))
+            asyncio.run_coroutine_threadsafe(repositories.stream.ride_updated(cli.app.redis_cli, ride), loop)
             assert wait_for_message_type(ws, MessageType.ride_updated)
 
 
@@ -197,11 +201,12 @@ def test_ws_ride_cancelled(client, profile_factory, make_token_headers):
         ride = loop.run_until_complete(repositories.rides.get(cli.app.redis_cli, ride_request.ride_id))
 
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.receiver.user_id)) as ws:
-            loop.create_task(repositories.stream.ride_cancelled(cli.app.redis_cli, ride))
+            asyncio.run_coroutine_threadsafe(repositories.stream.ride_cancelled(cli.app.redis_cli, ride), loop)
             assert wait_for_message_type(ws, MessageType.ride_cancelled)
 
 
 def test_ws_reconnect(client, profile_factory, make_token_headers):
+    loop = asyncio.get_event_loop()
     ride_request = RideRequest(
         sender=profile_factory(role=Role.driver),
         receiver=profile_factory(role=Role.hitchhiker),
@@ -210,9 +215,9 @@ def test_ws_reconnect(client, profile_factory, make_token_headers):
 
     with client as cli:
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.receiver.user_id)) as ws:
-            asyncio.gather(repositories.stream.ride_requested(cli.app.redis_cli, ride_request))
+            asyncio.run_coroutine_threadsafe(repositories.stream.ride_requested(cli.app.redis_cli, ride_request), loop)
             assert wait_for_message_type(ws, MessageType.ride_requested)
 
         with cli.websocket_connect("/api/v1/ws", headers=make_token_headers(ride_request.receiver.user_id)) as ws:
-            asyncio.gather(repositories.stream.ride_requested(cli.app.redis_cli, ride_request))
+            asyncio.run_coroutine_threadsafe(repositories.stream.ride_requested(cli.app.redis_cli, ride_request), loop)
             assert wait_for_message_type(ws, MessageType.ride_requested)
