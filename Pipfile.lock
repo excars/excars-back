@@ -123,10 +123,14 @@
         },
         "pydantic": {
             "hashes": [
-                "sha256:1205cd1213e8acee40a9ad7160b24de74484fd79ec3f09150b255896a3f506ab",
-                "sha256:58b71804e9a6b4e1ccf8b3dbbca8c0f9cf4b494e5bea219a96e2e2ecb5af688e"
+                "sha256:0e02b9c309e4982ace61e2a6e5ce47b5c7c64a3dfe60bc5a38272f73c8b9d8ff",
+                "sha256:0f8ff63bdf5f4e49605de1a957c41f912803ac2309c3804b5fab6e6a3a565988",
+                "sha256:4c66d40a47b65a55a7d15bf2b4f617672543c73becd5c0227a218ef4288e34df",
+                "sha256:625e3a223c00fb98a3902da04794b461f2f25e864feb5fce5afa7a2066082dd6",
+                "sha256:92518b7e63fc42ebf3562013c268a23eaf784a12f98378c439e3870525764faa",
+                "sha256:e139048f3e3b168415e5e67b3efa57168b220dbc79a50331429bbafce1f465b8"
             ],
-            "version": "==0.23"
+            "version": "==0.27"
         },
         "requests": {
             "hashes": [
