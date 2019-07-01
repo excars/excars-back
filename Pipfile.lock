@@ -470,10 +470,10 @@
         },
         "virtualenv": {
             "hashes": [
-                "sha256:15ee248d13e4001a691d9583948ad3947bcb8a289775102e4c4aa98a8b7a6d73",
-                "sha256:bfc98bb9b42a3029ee41b96dc00a34c2f254cbf7716bec824477b2c82741a5c4"
+                "sha256:b7335cddd9260a3dd214b73a2521ffc09647bde3e9457fcca31dc3be3999d04a",
+                "sha256:d28ca64c0f3f125f59cabf13e0a150e1c68e5eea60983cc4395d88c584495783"
             ],
-            "version": "==16.5.0"
+            "version": "==16.6.1"
         },
         "wrapt": {
             "hashes": [
