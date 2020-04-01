@@ -309,10 +309,10 @@
         },
         "importlib-metadata": {
             "hashes": [
-                "sha256:46fc60c34b6ed7547e2a723fc8de6dc2e3a1173f8423246b3ce497f064e9c3de",
-                "sha256:bc136180e961875af88b1ab85b4009f4f1278f8396a60526c0009f503a1a96ca"
+                "sha256:2a688cbaa90e0cc587f1df48bdc97a6eadccdcd9c35fb3f976a09e3b5016d90f",
+                "sha256:34513a8a0c4962bc66d35b359558fd8a5e10cd472d37aec5f66858addef32c1e"
             ],
-            "version": "==0.9"
+            "version": "==1.6.0"
         },
         "isort": {
             "hashes": [
