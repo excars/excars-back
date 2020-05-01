@@ -191,10 +191,9 @@
         },
         "sentry-asgi": {
             "hashes": [
-                "sha256:c72d45e980f3e499f06a02498d3ad91f3599f11bbe2fa45e53b0a47e2a50459a"
+                "sha256:0fc35fc6da9c16c0353f087c29fcfcd694b767bd1a77a2e768f519618eb3defd"
             ],
-            "index": "pypi",
-            "version": "==0.1.5"
+            "version": "==0.2.0"
         },
         "sentry-sdk": {
             "hashes": [
