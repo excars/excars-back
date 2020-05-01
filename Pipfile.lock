@@ -211,9 +211,10 @@
         },
         "starlette": {
             "hashes": [
-                "sha256:9d48b35d1fc7521d59ae53c421297ab3878d3c7cd4b75266d77f6c73cccb78bb"
+                "sha256:04fe51d86fd9a594d9b71356ed322ccde5c9b448fc716ac74155e5821a922f8d",
+                "sha256:0fb4b38d22945b46acb880fedee7ee143fd6c0542992501be8c45c0ed737dd1a"
             ],
-            "version": "==0.11.1"
+            "version": "==0.13.4"
         },
         "urllib3": {
             "hashes": [
