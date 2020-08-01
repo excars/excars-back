@@ -53,11 +53,10 @@
         },
         "fastapi": {
             "hashes": [
-                "sha256:1f886e96e4bf81d6b9f90b7477c8c661a84fb0a3c1313c339b0203f7c21e908f",
-                "sha256:889ba0e46d23e7a396075ceff146088365ace80f225f335562a9101e7015345d"
+                "sha256:96f964c3d9da8183f824857ad67c16c00ff3297e7bbca6748f60bd8485ded38c",
+                "sha256:9a4faa0e2b9c88a3772f7ce15eb4005bbdd27d1230ab4a0cd3517316175014a6"
             ],
-            "index": "pypi",
-            "version": "==0.20.0"
+            "version": "==0.60.1"
         },
         "google-auth": {
             "hashes": [
