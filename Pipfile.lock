@@ -307,10 +307,10 @@
         },
         "faker": {
             "hashes": [
-                "sha256:167cef2454482dc2fbd8b0ff6a5ba3dbac8d3a3ebdee6ba819d008100d9d9428",
-                "sha256:3f2f4570df28df2eb8f39b00520eb610081d6552975e926c6a2cbc64fd89c4c1"
+                "sha256:25a9a0a9125bca99c2a09aeb1c5f99dced4ca9d36c087c682f7934f24d3be5fa",
+                "sha256:9c4cfa4a796161398cdfe9560e56087b61f9202ab2286388947567da7e69a6a9"
             ],
-            "version": "==1.0.5"
+            "version": "==4.1.5"
         },
         "identify": {
             "hashes": [
